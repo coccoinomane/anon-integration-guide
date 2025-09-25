@@ -1,8 +1,9 @@
 import { FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
-import { MarketCompactData, PendleClient } from '../helpers/client';
+import { PendleClient } from '../helpers/client';
 import { MIN_LIQUIDITY_FOR_MARKET, MAX_LIQUIDITY_POOLS_IN_RESULTS } from '../constants';
 import { getChainIdFromChainName } from '../helpers/chains';
-import { to$$$, toTitleCase } from '../helpers/format';
+import { toTitleCase } from '../helpers/format';
+import { formatMarketCompactData } from '../helpers/markets';
 
 interface Props {
     chainName: string;
@@ -31,18 +32,9 @@ export async function getLiquidityPoolsWithHighestApy({ chainName, filterTokenSy
     const parts = [
         `Highest-APY pools on ${toTitleCase(chainName)}${filterTokenSymbol ? ` with '${filterTokenSymbol}' in their name` : ''}:`,
         `${firstNMarkets
-            .map((m, i) => `${i + 1}. ${formatMarket(m)}`)
+            .map((m, i) => `${i + 1}. ${formatMarketCompactData(m)}`)
             .filter(Boolean)
             .join('\n')}`,
     ];
     return toResult(parts.filter(Boolean).join('\n'));
-}
-
-function formatMarket(market: MarketCompactData): string {
-    let parts = [];
-    parts.push(`Pool ${market.name}:`);
-    parts.push(` from ${(market.details.aggregatedApy * 100).toFixed(2)}%`);
-    parts.push(` to ${(market.details.maxBoostedApy * 100).toFixed(2)}% APY (max boost)`);
-    parts.push(` ${to$$$(market.details.liquidity, 0, 0)} liquidity`);
-    return parts.join('');
 }
