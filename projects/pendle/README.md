@@ -29,12 +29,12 @@ More information on Pendle Finance can be found on their own academy page: https
     - [TODO] Convert my sUSDe on Ethereum on Pendle (same as above)
     - [TODO] Redeem my stETH PT and YT on Ethereum on Pendle
 
-### Swap PT & YT
+### Create and manage positions
 
     - [TODO] Swap 1 ETH to stETH PT on Ethereum on Pendle
     - [TODO] Swap 1 ETH to stETH YT on Ethereum on Pendle
-    - [TODO] Provide 1 ETH of liquidity to stETH pool on Ethereum on Pendle
-    - [TODO] Zap 1 ETH to stETH pool on Ethereum on Pendle (same as above)
+    - Provide 1 ETH of liquidity to stETH pool on Ethereum on Pendle
+    - Zap 1 ETH to wstETH pool on Ethereum on Pendle (same as above)
     - [TODO] Swap 1 stETH-PT to USDC on Ethereum on Pendle
     - [TODO] Remove my liquidity from stETH pool to ETH on Ethereum on Pendle
 

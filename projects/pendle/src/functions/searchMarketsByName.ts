@@ -1,5 +1,4 @@
-import { EVM, EvmChain } from '@heyanon/sdk';
-import { FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
+import { FunctionOptions, FunctionReturn, toResult, EVM, EvmChain } from '@heyanon/sdk';
 import { PendleClient } from '../helpers/client';
 import { supportedChains } from '../constants';
 
@@ -27,5 +26,5 @@ export async function searchMarketsByName({ chainName, searchString }: Props, _o
     }
 
     // Return matching market names & addresses
-    return toResult(matchingMarkets.map((m) => `${m.name}: ${m.address}`).join('\n'));
+    return toResult(matchingMarkets.map((m) => `Market ${m.name} with address ${m.address} and expiry date ${m.expiry}`).join('\n'));
 }

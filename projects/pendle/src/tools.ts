@@ -7,6 +7,43 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'addLiquidityToMarketPool',
+            description: `Add liquidity to a liquidity pool on the given market on the given chain.  The liquidity must be provided by a single token, which will be zapped in to the pool.`,
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    marketAddress: {
+                        type: 'string',
+                        description: 'Market address (e.g. "0x...")',
+                    },
+                    tokenInAddress: {
+                        type: 'string',
+                        description: 'Address of the token to be zapped in (e.g. "0x...")',
+                    },
+                    tokenInAmount: {
+                        type: 'number',
+                        description: 'Amount of liquidity to add in terms of the input token, expressed in human readable format (e.g. 1000 for 1000 tokens)',
+                    },
+                    slippageTolerance: {
+                        type: ['number', 'null'],
+                        description:
+                            'Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%).  This is needed because the provided token will be swapped to PT and SY tokens before being added to the pool.',
+                    },
+                },
+                required: ['chainName', 'marketAddress', 'tokenInAddress', 'tokenInAmount', 'slippageTolerance'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'getMyPositionsPortfolio',
             description: `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio, across all chains, together with the total portfolio value (TVL).  A position can be a principal token (PT), a yield token (YT) or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
             strict: true,
@@ -113,7 +150,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'searchMarketsByName',
-            description: `Search for active markets with names matching the given string, on the given chain.  Returns minimal information including the name and address of the markets.  Useful to get the address of a market to use in the getDataOnMarket function.`,
+            description: `Search for active markets with names matching the given string, on the given chain.  Returns minimal information including the name, address and expiry date of the markets.  Useful to get the address of a market to use in the getDataOnMarket function.`,
             strict: true,
             parameters: {
                 type: 'object',

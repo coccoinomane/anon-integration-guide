@@ -48,6 +48,30 @@ export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
             address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
             decimals: 6,
         },
+        {
+            type: 'erc20',
+            symbol: 'USDE',
+            name: 'Ethena USDe',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: '0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34',
+            decimals: 18,
+        },
+        {
+            type: 'erc20',
+            symbol: 'WBTC',
+            name: 'Wrapped BTC',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: '0x0555E30da8f98308EdB960aa94C0Db47230d2B9c',
+            decimals: 8,
+        },
+        {
+            type: 'erc20',
+            symbol: 'YOETH',
+            name: 'yoETH Token',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: '0x3a43aec53490cb9fa922847385d82fe25d0e9de7',
+            decimals: 18,
+        },
     ],
 };
 
@@ -57,7 +81,7 @@ export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
 export function getTokenInfoFromSymbol(chainName: EvmChain, symbol: string): TokenInfo | null {
     const chainTokens = tokens[chainName];
     if (!chainTokens) return null;
-    return chainTokens.find((token) => token.symbol === symbol) || null;
+    return chainTokens.find((token) => token.symbol.toUpperCase() === symbol.toUpperCase()) || null;
 }
 
 /**
@@ -66,5 +90,5 @@ export function getTokenInfoFromSymbol(chainName: EvmChain, symbol: string): Tok
 export function getTokenInfoFromAddress(chainName: EvmChain, address: `0x${string}`): TokenInfo | null {
     const chainTokens = tokens[chainName];
     if (!chainTokens) return null;
-    return chainTokens.find((token) => token.address === address) || null;
+    return chainTokens.find((token) => token.address.toLowerCase() === address.toLowerCase()) || null;
 }

@@ -5,7 +5,7 @@
 ## Minor
 
 - Update `executableFunctions` in `index.ts`
-- Allow token spending
+- What happens if I zap in with an unsupported token?
 
 ## Future
 

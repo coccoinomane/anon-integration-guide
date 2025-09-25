@@ -17,6 +17,7 @@ const DEEPSEEK_MODEL = 'deepseek-reasoner';
 // Protocol & chain configuration
 const PROTOCOL_NAME = 'Pendle Finance';
 const GAS_LIMIT = 2_000_000n; // hardcoded for simplicity
+const DELAY_BETWEEN_TRANSACTIONS = 5000; // needed to avoid nonce errors
 
 // Merge HeyAnon & Agent functions (no Agent functions yet)
 const functions = { ...heyAnonFunctions, ...agentFunctions };
@@ -127,6 +128,9 @@ export async function agent({ action, provider, debugLlm, debugTools, notify }: 
                     });
 
                     const receipt = await provider.waitForTransactionReceipt({ hash });
+
+                    // Insert a delay between transactions
+                    await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_TRANSACTIONS));
 
                     if (!receipt?.status || receipt.status !== 'success') {
                         throw new Error(`Transaction failed with hash: ${receipt.transactionHash}`);

@@ -17,7 +17,7 @@ const DEFAULT_TIMEOUT = 15000;
 */
 
 export type TokenAmountResponse = {
-    token: string;
+    token: `0x${string}`;
     amount: string;
 };
 
@@ -28,10 +28,10 @@ export type ContractParamInfo = {
 };
 
 export type TransactionDto = {
-    data: string;
-    to: string;
-    from: string;
-    value: string;
+    data: `0x${string}`;
+    to: `0x${string}`;
+    from: `0x${string}`;
+    value?: string;
 };
 
 export type ConvertData = {
@@ -46,6 +46,31 @@ export type RouteResponse = {
     tx: TransactionDto;
     outputs: TokenAmountResponse[];
     data: ConvertData;
+};
+
+export type ConvertParams = {
+    /** Chain ID number */
+    chainId: number;
+    /** The address to receive the output of the action */
+    receiver: `0x${string}`;
+    /** Max slippage accepted. A value from 0 to 1 (0.01 is 1%) */
+    slippage: number;
+    /** Enable swap aggregator to swap between tokens that cannot be natively converted from/to the underlying asset. Default value: false */
+    enableAggregator?: boolean;
+    /** List of aggregator names to use for the swap. If not provided, all aggregators will be used. List of supported aggregator can be found at: getSupportedAggregators */
+    aggregators?: string;
+    /** Input token addresses */
+    tokensIn: `0x${string}`;
+    /** Input token amounts */
+    amountsIn: string;
+    /** Output token addresses */
+    tokensOut: `0x${string}`;
+    /** Redeem rewards. Default value: false */
+    redeemRewards?: boolean;
+    /** Set needScale value for aggregators. When enabled, please make sure to buffer the amountIn by about 2%. Default value: false */
+    needScale?: boolean;
+    /** Available fields: impliedApy, effectiveApy. Comma separated list of fields to return. For example: field1,field2. More fields will consume more computing units. */
+    additionalData?: string;
 };
 
 export type ConvertResponse = {
@@ -242,8 +267,8 @@ export class PendleClient {
     /**
      * Genereate transaction call data for swaps, mint, add liquidity, etc
      */
-    async convert(chainId: number, params: Record<string, any> = {}) {
-        const response = await this.call<ConvertResponse>(`v2/sdk/${chainId}/convert`, params);
+    async convert(params: ConvertParams) {
+        const response = await this.call<ConvertResponse>(`v2/sdk/${params.chainId}/convert`, params);
 
         return response;
     }

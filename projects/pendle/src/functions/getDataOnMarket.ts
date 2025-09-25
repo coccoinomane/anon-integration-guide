@@ -1,18 +1,24 @@
-import { FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
+import { FunctionOptions, FunctionReturn, toResult, EVM, EvmChain } from '@heyanon/sdk';
 import { PendleClient } from '../helpers/client';
-import { getChainIdFromChainName } from '../helpers/chains';
 import { formatMarketData } from '../helpers/markets';
+import { supportedChains } from '../constants';
 
 interface Props {
     chainName: string;
     marketAddress: string;
 }
 
+const { getChainFromName } = EVM.utils;
+
 export async function getDataOnMarket({ chainName, marketAddress }: Props, { notify }: FunctionOptions): Promise<FunctionReturn> {
+    // Validation
+    const chainId = getChainFromName(chainName as EvmChain);
+    if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);
+    if (!supportedChains.includes(chainId)) return toResult(`Pendle is not supported on ${chainName}`, true);
+
     // Get all active markets
     await notify(`Fetching market data for ${marketAddress} on ${chainName}...`);
     const pendleClient = new PendleClient();
-    const chainId = getChainIdFromChainName(chainName);
     let markets = await pendleClient.getActiveMarkets(chainId);
 
     // Check if given market address exists
