@@ -108,7 +108,7 @@ export type MarketDetails = {
 
 export type MarketCompactData = {
     name: string;
-    address: string;
+    address: `0x${string}`;
     expiry: string;
     pt: string;
     yt: string;
@@ -216,7 +216,8 @@ export class PendleClient {
     private handleError(error: unknown): never {
         if (axios.isAxiosError(error)) {
             const axiosError = error as AxiosError;
-            throw new PendleApiError(axiosError.message, axiosError.response?.status, axiosError.response?.data);
+            const dataMessage = (axiosError.response?.data as any)?.message as string;
+            throw new PendleApiError(axiosError.message + (dataMessage ? `. ${dataMessage}` : ''), axiosError.response?.status, axiosError.response?.data);
         }
         if (error instanceof Error) {
             throw new PendleApiError(error.message);

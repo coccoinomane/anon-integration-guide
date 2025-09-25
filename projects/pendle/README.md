@@ -44,10 +44,6 @@ More information on Pendle Finance can be found on their own academy page: https
     - [TODO] Claim all my rewards across chains on Pendle
     - [TODO] Claim rewards for the sUSDe Ethereum market on Pendle
 
-### Help
-
-    - [TODO] What can I do on Pendle?
-
 ## Test with the local agent
 
 I've built a simple agent called `ask-pendle` to test the integration. To run it, you need to configure .env:

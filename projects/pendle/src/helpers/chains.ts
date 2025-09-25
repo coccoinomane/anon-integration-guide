@@ -17,16 +17,6 @@ export function getChainNameFromChainId(chainId: number, titleCase: boolean = tr
 }
 
 /**
- * Get the chain id from the chain name
- */
-export function getChainIdFromChainName(chainName: string): number {
-    if (!chainName) {
-        throw new Error(`Chain name '${chainName}' not supported`);
-    }
-    return EVM.utils.getChainFromName(chainName as EvmChain);
-}
-
-/**
  * Convert a HeyAnon chain name to a viem chain object; throws an error
  * if the chain is not supported by Hey Anon or viem.
  */

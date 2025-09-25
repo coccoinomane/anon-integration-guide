@@ -1,7 +1,7 @@
+import { EVM, EvmChain } from '@heyanon/sdk';
 import { FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { PendleClient } from '../helpers/client';
-import { MIN_LIQUIDITY_FOR_MARKET, MAX_LIQUIDITY_POOLS_IN_RESULTS } from '../constants';
-import { getChainIdFromChainName } from '../helpers/chains';
+import { MIN_LIQUIDITY_FOR_MARKET, MAX_LIQUIDITY_POOLS_IN_RESULTS, supportedChains } from '../constants';
 import { toTitleCase } from '../helpers/format';
 import { formatMarketCompactDataWithLiquidityApy } from '../helpers/markets';
 
@@ -10,11 +10,17 @@ interface Props {
     filterTokenSymbol: string | null;
 }
 
+const { getChainFromName } = EVM.utils;
+
 export async function getLiquidityPoolsWithHighestApy({ chainName, filterTokenSymbol }: Props, { notify }: FunctionOptions): Promise<FunctionReturn> {
+    // Validation
+    const chainId = getChainFromName(chainName as EvmChain);
+    if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);
+    if (!supportedChains.includes(chainId)) return toResult(`Pendle is not supported on ${chainName}`, true);
+
     // Get all active markets
     await notify(`Fetching liquidity pools on ${chainName}...`);
     const pendleClient = new PendleClient();
-    const chainId = getChainIdFromChainName(chainName);
     let markets = await pendleClient.getActiveMarkets(chainId);
 
     // Optionally filter by token symbol

@@ -37,3 +37,18 @@ export const MAX_MARKETS_IN_RESULTS = 10;
  * Minimum $ liquidity for a market to appear in search results
  */
 export const MIN_LIQUIDITY_FOR_MARKET = 100000;
+
+/**
+ * Default slippage tolerance
+ */
+export const DEFAULT_SLIPPAGE_TOLERANCE = 0.02;
+
+/**
+ * The address used by Pendle API to identify the native token
+ */
+export const PENDLE_NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+/**
+ * The address used by HeyAnon SDK to identify the native token
+ */
+export const HEYANON_NATIVE_TOKEN_ADDRESS = EVM.constants.NATIVE_ADDRESS;

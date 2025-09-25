@@ -21,6 +21,6 @@ export async function getTokenAddressFromSymbol({ chainName, symbol }: Props): P
 
     // Look for the token with the exact symbol
     const token = getTokenInfoFromSymbol(chainName as EvmChain, symbol);
-    if (!token) return toResult(`Token ${symbol} not found on ${chainName}`, true);
+    if (!token) return toResult(`Token ${symbol} not found on ${chainName}`, false); // Not a real error, let the LLM handle it
     return toResult(token.address);
 }

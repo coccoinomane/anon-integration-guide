@@ -15,11 +15,37 @@ export interface TokenInfo {
 export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
     [Chain.ETHEREUM]: [
         {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            chainId: EVM.constants.ChainIds[Chain.ETHEREUM],
+            address: EVM.constants.NATIVE_ADDRESS,
+            decimals: 18,
+        },
+        {
             type: 'erc20',
             symbol: 'USDC',
             name: 'USDC',
             chainId: EVM.constants.ChainIds[Chain.ETHEREUM],
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            decimals: 6,
+        },
+    ],
+    [Chain.BASE]: [
+        {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: EVM.constants.NATIVE_ADDRESS,
+            decimals: 18,
+        },
+        {
+            type: 'erc20',
+            symbol: 'USDC',
+            name: 'USDC',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
             decimals: 6,
         },
     ],
