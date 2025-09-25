@@ -2,7 +2,21 @@ import { Chain, EVM } from '@heyanon/sdk';
 
 const { ChainIds } = EVM.constants;
 
-export const supportedChains = [ChainIds[Chain.ETHEREUM], ChainIds[Chain.BASE]];
+/**
+ * Supported chains are shown in the UI at
+ * https://app.pendle.finance/trade/markets
+ * Excluding Berachain and Mantle here as they
+ * are not supported by HeyAnon SDK yet.
+ */
+export const supportedChains = [
+    ChainIds[Chain.ETHEREUM],
+    ChainIds[Chain.SONIC],
+    ChainIds[Chain.BASE],
+    ChainIds[Chain.ARBITRUM],
+    ChainIds[Chain.BSC],
+    ChainIds[Chain.OPTIMISM],
+    ChainIds[Chain.HYPEREVM],
+];
 
 /**
  * Maximum number of positions to show when calling the portfolio tool
