@@ -15,6 +15,11 @@ export const MAX_POSITIONS_IN_RESULTS = 50;
 export const MAX_LIQUIDITY_POOLS_IN_RESULTS = 10;
 
 /**
+ * Maximum number of marketes to show in the search results
+ */
+export const MAX_MARKETS_IN_RESULTS = 10;
+
+/**
  * Minimum $ liquidity for a market to appear in search results
  */
 export const MIN_LIQUIDITY_FOR_MARKET = 100000;

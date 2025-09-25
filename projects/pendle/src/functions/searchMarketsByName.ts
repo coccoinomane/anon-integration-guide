@@ -8,12 +8,17 @@ interface Props {
 }
 
 export async function searchMarketsByName({ chainName, searchString }: Props, _options: FunctionOptions): Promise<FunctionReturn> {
+    // Get all active markets
     const pendleClient = new PendleClient();
     const chainId = getChainIdFromChainName(chainName);
     let markets = await pendleClient.getActiveMarkets(chainId);
-    let market = markets.filter((m) => m.name.toLowerCase().includes(searchString.toLowerCase()));
-    if (!market) {
+
+    // Check if any active market matches the search string
+    let matchingMarkets = markets.filter((m) => m.name.toLowerCase().includes(searchString.toLowerCase()));
+    if (!matchingMarkets.length) {
         return toResult(`Could not find any active market with '${searchString}' in the name on ${chainName}`);
     }
-    return toResult(market.map((m) => `${m.name}: ${m.address}`).join('\n'));
+
+    // Return matching market names & addresses
+    return toResult(matchingMarkets.map((m) => `${m.name}: ${m.address}`).join('\n'));
 }

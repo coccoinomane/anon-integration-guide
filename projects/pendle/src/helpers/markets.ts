@@ -2,14 +2,29 @@ import { GetMarketDataResponse, MarketCompactData } from './client';
 import { to$$$ } from './format';
 
 /**
- * Format a market compact data object to a single line string.
+ * Format a market compact data object to a single line string,
+ * with LP APY as main metric.
  */
-export function formatMarketCompactData(market: MarketCompactData): string {
+export function formatMarketCompactDataWithLiquidityApy(market: MarketCompactData): string {
     let parts = [];
-    parts.push(`Pool ${market.name}:`);
+    parts.push(`Pool ${market.name}`);
+    parts.push(` expiring on ${market.expiry}:`);
     parts.push(` from ${(market.details.aggregatedApy * 100).toFixed(2)}%`);
     parts.push(` to ${(market.details.maxBoostedApy * 100).toFixed(2)}% APY (max boost)`);
-    parts.push(` ${to$$$(market.details.liquidity, 0, 0)} liquidity`);
+    parts.push(`, ${to$$$(market.details.liquidity, 0, 0)} liquidity`);
+    return parts.join('');
+}
+
+/**
+ * Format a market compact data object to a single line string,
+ * with implied APY as main metric.
+ */
+export function formatMarketCompactDataWithImpliedApy(market: MarketCompactData): string {
+    let parts = [];
+    parts.push(`Market ${market.name}`);
+    parts.push(` expiring on ${market.expiry}:`);
+    parts.push(` yield ${(market.details.impliedApy * 100).toFixed(2)}% APY (implied)`);
+    parts.push(`, ${to$$$(market.details.liquidity, 0, 0)} liquidity`);
     return parts.join('');
 }
 

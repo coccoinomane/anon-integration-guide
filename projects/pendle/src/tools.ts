@@ -1,5 +1,5 @@
 import { AdapterExport, EVM } from '@heyanon/sdk';
-import { MAX_LIQUIDITY_POOLS_IN_RESULTS, MAX_POSITIONS_IN_RESULTS, MIN_LIQUIDITY_FOR_MARKET, supportedChains } from './constants';
+import { MAX_LIQUIDITY_POOLS_IN_RESULTS, MAX_MARKETS_IN_RESULTS, MAX_POSITIONS_IN_RESULTS, MIN_LIQUIDITY_FOR_MARKET, supportedChains } from './constants';
 
 const { getChainName } = EVM.utils;
 
@@ -40,8 +40,32 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'getMarketsWithHighestApy',
+            description: `Show the top ${MAX_MARKETS_IN_RESULTS} markets with the highest yield.  Yield here is measured by the implied APY metric, which corresponds to the fixed annualized yield accrued by 1 PT token for the given market. For each market, show its name, expiry, TVL, and yield. For safety reasons only markets with a minimum liquidity of $${MIN_LIQUIDITY_FOR_MARKET} are shown.`,
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    filterTokenSymbol: {
+                        type: ['string', 'null'],
+                        description: 'Optionally, filter the markets by name (e.g. "ETH", "stETH", "USDC")',
+                    },
+                },
+                required: ['chainName', 'filterTokenSymbol'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'getLiquidityPoolsWithHighestApy',
-            description: `Show the top ${MAX_LIQUIDITY_POOLS_IN_RESULTS} liquidity pools with the highest yield, on the given chain. For each liquidity pool, show its name, TVL, and yield. For safety reasons only pools with a minimum liquidity of $${MIN_LIQUIDITY_FOR_MARKET} are shown.`,
+            description: `Show the top ${MAX_LIQUIDITY_POOLS_IN_RESULTS} liquidity pools with the highest yield, on the given chain. For each liquidity pool, show its name, expiry, TVL, and yield. For safety reasons only pools with a minimum liquidity of $${MIN_LIQUIDITY_FOR_MARKET} are shown.`,
             strict: true,
             parameters: {
                 type: 'object',
