@@ -61,4 +61,52 @@ export const tools = [
             },
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'getDataOnMarket',
+            description: `Get the info and latest data for the given market on given chain, including yields, TVL, liquidity, trading volume, asset prices, estimated rewards, etc.`,
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    marketAddress: {
+                        type: ['string', 'null'],
+                        description: 'Market address (e.g. "0x...")',
+                    },
+                },
+                required: ['chainName', 'marketAddress'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'searchMarketsByName',
+            description: `Search for active markets with names matching the given string, on the given chain.  Returns minimal information including the name and address of the markets.  Useful to get the address of a market to use in the getDataOnMarket function.`,
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    searchString: {
+                        type: 'string',
+                        description: 'String to search for in the market names',
+                    },
+                },
+                required: ['chainName', 'searchString'],
+                additionalProperties: false,
+            },
+        },
+    },
 ] satisfies AdapterExport['tools'];

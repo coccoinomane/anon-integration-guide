@@ -15,14 +15,13 @@ More information on Pendle Finance can be found on their own academy page: https
     - Show my pools on Pendle
     - Value of my stETH position on Base chain on Pendle
 
-### Available markets
+### Available markets & pools
 
-    - Show Ethereum pools with highest APY on Pendle
-    - Show best pools to LP USDe on Ethereum on Pendle
-    - [TODO] Best fixed yield available on Ethereum on Pendle?
-    - [TODO] Give me info on Pendle sUSDe pool on Ethereum
-    - [TODO] List markets with highest implied APY vs underlying asset on Pendle
-    - [TODO] Show me all sUSDe markets on Pendle
+    - [TODO] Best fixed yields on Pendle on Ethereum?
+    - [TODO] Show me highest yields on Pendle on Ethereum
+    - Give me info on Pendle sUSDe market on Ethereum
+    - Show Pendle pools with highest APY on Ethereum
+    - Best opportunties on Pendle to LP USDe on Ethereum
 
 ### Mint & redeem
 

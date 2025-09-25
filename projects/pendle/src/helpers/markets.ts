@@ -1,4 +1,4 @@
-import { MarketCompactData } from './client';
+import { GetMarketDataResponse, MarketCompactData } from './client';
 import { to$$$ } from './format';
 
 /**
@@ -11,4 +11,27 @@ export function formatMarketCompactData(market: MarketCompactData): string {
     parts.push(` to ${(market.details.maxBoostedApy * 100).toFixed(2)}% APY (max boost)`);
     parts.push(` ${to$$$(market.details.liquidity, 0, 0)} liquidity`);
     return parts.join('');
+}
+
+/**
+ * Return a multiple line string with all data for the given market.
+ */
+export function formatMarketData(marketData: GetMarketDataResponse, market: MarketCompactData, includeTokensAddresses: boolean = false): string {
+    let parts: string[] = [];
+    parts.push(`Market ${market.name}:`);
+    parts.push(` - Expires on: ${market.expiry}`);
+    parts.push(` - Liquidity: ${to$$$(marketData.liquidity.usd, 0, 0)}`);
+    parts.push(` - Total TVL: ${to$$$(marketData.totalTvl.usd, 0, 0)}`);
+    parts.push(` - Trading volume: ${to$$$(marketData.tradingVolume.usd, 0, 0)}`);
+    parts.push(` - Underlying asset price: ${to$$$(marketData.assetPriceUsd, 4, 4)}`);
+    parts.push(` - Fixed yield PT earns you ${(marketData.impliedApy * 100).toFixed(2)}% fixed APY`);
+    parts.push(` - The underlying asset earns an APY of ${(marketData.underlyingApy * 100).toFixed(2)}%`);
+    parts.push(` - Providing liquidity earns you from ${(market.details.aggregatedApy * 100).toFixed(2)}% to ${(market.details.maxBoostedApy * 100).toFixed(2)}% APY (max boost)`);
+    if (includeTokensAddresses) {
+        parts.push(` - PT address: ${market.pt}`);
+        parts.push(` - YT address: ${market.yt}`);
+        parts.push(` - SY address: ${market.sy}`);
+        parts.push(` - Underlying asset address: ${market.underlyingAsset}`);
+    }
+    return parts.join('\n');
 }

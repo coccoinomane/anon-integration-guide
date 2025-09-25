@@ -127,7 +127,7 @@ export type GetMarketsResponse = {
 
 type UsdAndAcc = {
     usd: number;
-    acc: number;
+    acc?: number;
 };
 
 type AssetPrice = {
@@ -157,6 +157,7 @@ export type GetMarketDataResponse = {
     timestamp: string;
     liquidity: UsdAndAcc;
     tradingVolume: UsdAndAcc;
+    totalTvl: UsdAndAcc;
     underlyingInterestApy: number;
     underlyingRewardApy: number;
     underlyingApy: number;
@@ -280,7 +281,7 @@ export class PendleClient {
      * trading volume, asset prices, estimated rewards, etc
      */
     @staticMemoize()
-    async getMarketData(chainId: number, marketAddress: string, params: Record<string, any> = {}) {
+    async getMarketData(chainId: number, marketAddress: string, params: Record<string, any> = {}): Promise<GetMarketDataResponse> {
         const response = await this.call<GetMarketDataResponse>(`v2/${chainId}/markets/${marketAddress}/data`, params);
 
         return response;
