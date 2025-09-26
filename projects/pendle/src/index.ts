@@ -14,6 +14,7 @@ export default {
     chains: supportedChains.map(getChainName) as Chain[],
     executableFunctions: [
         'addLiquidityToMarketPool',
+        'removeLiquidityFromMarketPool',
         'getMyPositionsPortfolio',
         'getAddressPositionsPortfolio',
         'getMarketsWithHighestApy',

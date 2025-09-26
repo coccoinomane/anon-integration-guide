@@ -182,7 +182,10 @@ export function formatFlattenedPositions(flattenedPositions: FlattenedTokenPosit
 
         let parts: string[] = [
             `$${position.valuation.toFixed(2)}`,
-            `${position.marketName}-${position.tokenType} ${position.positionStatus} position`,
+            `${position.tokenType}`,
+            `${position.positionStatus === 'closed' ? '(closed)' : ''}`,
+            `position`,
+            `on ${position.marketName} market`,
             `on ${position.chainName} chain`,
             `${apyString}`,
         ].filter(Boolean); // Remove empty strings

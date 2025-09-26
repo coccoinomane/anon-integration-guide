@@ -42,6 +42,14 @@ export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
         },
         {
             type: 'erc20',
+            symbol: 'WETH',
+            name: 'Wrapped Ethereum',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: '0x4200000000000000000000000000000000000006',
+            decimals: 18,
+        },
+        {
+            type: 'erc20',
             symbol: 'USDC',
             name: 'USDC',
             chainId: EVM.constants.ChainIds[Chain.BASE],

@@ -1,4 +1,5 @@
 export * from './addLiquidityToMarketPool';
+export * from './removeLiquidityFromMarketPool';
 export * from './getMyPositionsPortfolio';
 export * from './getAddressPositionsPortfolio';
 export * from './getMarketsWithHighestApy';

@@ -1,21 +1,23 @@
-import { erc20Abi, formatUnits, parseUnits } from 'viem';
+import { erc20Abi } from 'viem';
 import { FunctionOptions, FunctionReturn, toResult, EVM, EvmChain } from '@heyanon/sdk';
 import { ConvertParams, ConvertResponse, PendleApiError, PendleClient } from '../helpers/client';
 import { fetchTokenInfoFromAddress } from '../helpers/tokens';
-import { DEFAULT_SLIPPAGE_TOLERANCE, PENDLE_NATIVE_TOKEN_ADDRESS, supportedChains } from '../constants';
+import { DEFAULT_SLIPPAGE_TOLERANCE, PENDLE_LP_TOKEN_DECIMALS, supportedChains } from '../constants';
+import { toHumanReadableAmount } from '../helpers/format';
 
 interface Props {
     chainName: string;
     marketAddress: `0x${string}`;
-    tokenInAddress: `0x${string}`;
-    tokenInAmount: number;
+    tokenOutAddress: `0x${string}`;
+    removalPercentage: number | null;
     slippageTolerance: number | null;
+    redeemRewards: boolean | null;
 }
 
-const { checkToApprove, getChainFromName } = EVM.utils;
+const { getChainFromName, checkToApprove } = EVM.utils;
 
-export async function addLiquidityToMarketPool(
-    { chainName, marketAddress, tokenInAddress, tokenInAmount, slippageTolerance }: Props,
+export async function removeLiquidityFromMarketPool(
+    { chainName, marketAddress, tokenOutAddress, removalPercentage, slippageTolerance, redeemRewards }: Props,
     options: FunctionOptions,
 ): Promise<FunctionReturn> {
     // Validation
@@ -24,9 +26,14 @@ export async function addLiquidityToMarketPool(
     if (!supportedChains.includes(chainId)) return toResult(`Pendle is not supported on ${chainName}`, true);
 
     // Get default values
+    redeemRewards = redeemRewards ?? true;
     slippageTolerance = slippageTolerance ?? DEFAULT_SLIPPAGE_TOLERANCE;
     if (slippageTolerance > 1 || slippageTolerance < 0) {
         return toResult(`Slippage tolerance must be between 0 and 1`);
+    }
+    removalPercentage = removalPercentage ?? 1;
+    if (removalPercentage > 1 || removalPercentage < 0) {
+        return toResult(`Removal percentage must be between 0 and 1`);
     }
 
     // Check wallet connection
@@ -47,39 +54,48 @@ export async function addLiquidityToMarketPool(
         return toResult(`Could not find market ${marketAddress} on ${chainName}, or market is not active`);
     }
 
-    // Convert amount from human readable to wei
-    const inputTokenInfo = await fetchTokenInfoFromAddress(provider, tokenInAddress);
-    const tokenAmountInWei = parseUnits(tokenInAmount.toString(), inputTokenInfo.decimals);
+    // Get the user liquidity
+    const lpBalanceInWei = await provider.readContract({
+        address: marketAddress,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [account],
+    });
 
-    // Check that the user has enough token balance
-    let tokenBalance: bigint;
-    if (inputTokenInfo.address === PENDLE_NATIVE_TOKEN_ADDRESS) {
-        tokenBalance = await provider.getBalance({
-            address: account,
-        });
+    // Get info on the output token (and convert it to the correct
+    // address if it is the native token)
+    const outputTokenInfo = await fetchTokenInfoFromAddress(provider, tokenOutAddress);
+
+    // Determine the amount of liquidity to remove
+    if (lpBalanceInWei === 0n) {
+        return toResult(`No liquidity to remove from ${marketAddress} on ${chainName}`);
+    }
+    let lpBalanceToRemoveInWei = lpBalanceInWei;
+    if (removalPercentage === 1) {
+        lpBalanceToRemoveInWei = lpBalanceInWei;
+        notify(
+            `Will remove all of your liquidity from ${market.name} to ${outputTokenInfo.symbol}, for a total of ${toHumanReadableAmount(lpBalanceToRemoveInWei, PENDLE_LP_TOKEN_DECIMALS)} LP tokens`,
+        );
     } else {
-        tokenBalance = await provider.readContract({
-            address: inputTokenInfo.address,
-            abi: erc20Abi,
-            functionName: 'balanceOf',
-            args: [account],
-        });
-    }
-    if (tokenBalance < tokenAmountInWei) {
-        return toResult(`Not enough ${inputTokenInfo.symbol} balance to add liquidity (${formatUnits(tokenBalance, inputTokenInfo.decimals)} ${inputTokenInfo.symbol}).`);
+        const removalPercentageAsBigIntPercentage = BigInt(removalPercentage * 10000);
+        lpBalanceToRemoveInWei = (lpBalanceInWei * removalPercentageAsBigIntPercentage) / 10000n;
+        notify(
+            `Will remove ${removalPercentage * 100}% of your liquidity from ${market.name} to ${outputTokenInfo.symbol}, for a total of ${toHumanReadableAmount(lpBalanceToRemoveInWei, PENDLE_LP_TOKEN_DECIMALS)} LP tokens`,
+        );
     }
 
-    notify(`Preparing to add liquidity on Pendle market ${market.name}...`);
+    notify(`Preparing to remove liquidity from Pendle market ${market.name}...`);
 
     // Prepare API call to get TX data from Pendle
     const convertParams: ConvertParams = {
         chainId,
-        tokensIn: inputTokenInfo.address, // do not use tokenInAddress here because for native tokens it is different
-        amountsIn: tokenAmountInWei.toString(),
-        tokensOut: market.address,
+        tokensIn: marketAddress,
+        amountsIn: lpBalanceToRemoveInWei.toString(),
+        tokensOut: outputTokenInfo.address,
         receiver: account,
         slippage: slippageTolerance,
         enableAggregator: true,
+        redeemRewards,
     };
 
     // Perform the actual call and handle known errors
@@ -90,7 +106,7 @@ export async function addLiquidityToMarketPool(
         // Messages like "Asset with id 8453-0x0555e not found"
         // mean that the token is not supported by Pendle
         if (error instanceof PendleApiError && error.message.match(/Asset with id .* not found/)) {
-            return toResult(`Token ${inputTokenInfo.symbol} is not supported by Pendle`);
+            return toResult(`Token ${outputTokenInfo.symbol} is not supported by Pendle`);
         } else {
             throw error;
         }
@@ -99,7 +115,7 @@ export async function addLiquidityToMarketPool(
     // Check that there is at least a route for the swap
     const txData = convertResponse?.routes[0]?.tx;
     if (!txData) {
-        return toResult(`Could not find a route for the liquidity add`);
+        return toResult(`Could not find a route for the liquidity remove`);
     }
 
     // Build transactions
@@ -125,21 +141,21 @@ export async function addLiquidityToMarketPool(
     }
 
     // Prepare liquidity add transaction
-    const addLiquidityTx: EVM.types.TransactionParams = {
+    const removeLiquidityTx: EVM.types.TransactionParams = {
         target: txData.to,
         data: txData.data,
         value: BigInt(txData.value || '0'),
     };
-    transactions.push(addLiquidityTx);
+    transactions.push(removeLiquidityTx);
 
     // Send transactions
     if (transactions.length === 1) {
-        await options.notify('Sending add liquidity transaction...');
+        await options.notify('Sending remove liquidity transaction...');
     } else if (transactions.length > 1) {
-        await options.notify('Sending approval & add liquidity transactions...');
+        await options.notify('Sending approval & remove liquidity transactions...');
     }
     const result = await sendTransactions({ chainId, account, transactions });
-    const addLiquidityTxMessage = result.data[result.data.length - 1];
+    const removeLiquidityTxMessage = result.data[result.data.length - 1];
 
-    return toResult(`Successfully added liquidity to market ${market.name} by zapping in ${tokenInAmount} ${inputTokenInfo.symbol}. ${addLiquidityTxMessage.message}`);
+    return toResult(`Successfully removed liquidity from market ${market.name} to ${outputTokenInfo.symbol}. ${removeLiquidityTxMessage.message}`);
 }

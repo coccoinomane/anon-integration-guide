@@ -15,6 +15,8 @@ More information on Pendle Finance can be found on their own academy page: https
     - Show my pools on Pendle
     - Value of my stETH position on Base chain on Pendle
 
+Please note that most portfolio tools return positions across all chains, without the need to specify the chain.
+
 ### Available markets & pools
 
     - Best fixed yields on Pendle on Ethereum?
@@ -26,17 +28,27 @@ More information on Pendle Finance can be found on their own academy page: https
 ### Mint & redeem
 
     - [TODO] Mint PT and YT from my sUSDe on Ethereum on Pendle
-    - [TODO] Convert my sUSDe on Ethereum on Pendle (same as above)
+    - [TODO] Convert my sUSDe on Ethereum on Pendle // same as above
     - [TODO] Redeem my stETH PT and YT on Ethereum on Pendle
 
 ### Create and manage positions
 
     - [TODO] Swap 1 ETH to stETH PT on Ethereum on Pendle
+    - [TODO] Swap 1 ETH to stETH PT on Ethereum on Pendle with a 1% slippage tolerance
     - [TODO] Swap 1 ETH to stETH YT on Ethereum on Pendle
-    - Provide 1 ETH of liquidity to stETH pool on Ethereum on Pendle
-    - Zap 1 ETH to wstETH pool on Ethereum on Pendle (same as above)
     - [TODO] Swap 1 stETH-PT to USDC on Ethereum on Pendle
-    - [TODO] Remove my liquidity from stETH pool to ETH on Ethereum on Pendle
+
+Please note that these commands will allow you to swap to / from all the tokens supported by the DEX aggregators used by Pendle, including tokens not listed in the token dropdown in the Pendle UI.
+
+### Add and remove liquidity
+
+    - Provide 100 USDC of liquidity to stETH pool on Ethereum on Pendle
+    - Zap 100 USDC to wstETH pool on Ethereum on Pendle // same as above
+    - Provide 100 USDC of liquidity to stETH pool on Ethereum on Pendle, with a 1% slippage tolerance
+    - Remove my stETH liquidity to ETH on Ethereum on Pendle
+    - Remove half of my stETH liquidity to ETH on Ethereum on Pendle
+
+Please note that these commands will allow you to zap in / zap out to all the tokens supported by the DEX aggregators used by Pendle, including tokens not listed in the token dropdown in the Pendle UI.
 
 ## Rewards
 

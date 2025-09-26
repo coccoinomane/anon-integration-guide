@@ -52,3 +52,14 @@ export const PENDLE_NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000
  * The address used by HeyAnon SDK to identify the native token
  */
 export const HEYANON_NATIVE_TOKEN_ADDRESS = EVM.constants.NATIVE_ADDRESS;
+
+/**
+ * Decimals of LP tokens in Pendle.
+ */
+export const PENDLE_LP_TOKEN_DECIMALS = 18;
+
+/**
+ * The default precision used to show token amounts,
+ * expressed as a number of significant digits.
+ */
+export const DEFAULT_PRECISION = 6;

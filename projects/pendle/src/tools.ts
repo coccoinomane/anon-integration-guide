@@ -44,6 +44,47 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'removeLiquidityFromMarketPool',
+            description: `Remove a percentage of the user's deposited liquidity from a market pool, and convert it to the output token.  Omit the removal percentage to remove all of the user's liquidity from the pool.`,
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    marketAddress: {
+                        type: 'string',
+                        description: 'Market address (e.g. "0x...")',
+                    },
+                    tokenOutAddress: {
+                        type: 'string',
+                        description: 'Address of the token to be converted to (e.g. "0x...")',
+                    },
+                    removalPercentage: {
+                        type: ['number', 'null'],
+                        description: 'Percent of liquidity to remove, as a number from 0 to 1 (e.g. 0.01 for 1%). If null, all of the user liquidity will be removed.',
+                    },
+                    slippageTolerance: {
+                        type: ['number', 'null'],
+                        description:
+                            "Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%).  This is needed because the user's liquidity will be converted to the output token.",
+                    },
+                    redeemRewards: {
+                        type: ['boolean', 'null'],
+                        description: 'Whether to redeem rewards along with the liquidity. Default is true.',
+                    },
+                },
+                required: ['chainName', 'marketAddress', 'tokenOutAddress', 'removalPercentage', 'slippageTolerance', 'redeemRewards'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'getMyPositionsPortfolio',
             description: `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio, across all chains, together with the total portfolio value (TVL).  A position can be a principal token (PT), a yield token (YT) or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
             strict: true,

@@ -15,7 +15,7 @@ export async function getMyPositionsPortfolio(_props: Props, { notify, evm: { ge
     }
 
     // Flatten and sort all positions by valuation
-    const flattenedResult = await flattenAndSortPositions(positionsForAllChains);
+    const flattenedResult = await flattenAndSortPositions(positionsForAllChains, false, true);
 
     // Format the flattened positions for display
     const firstNPositions = flattenedResult.positions.slice(0, MAX_POSITIONS_IN_RESULTS);
