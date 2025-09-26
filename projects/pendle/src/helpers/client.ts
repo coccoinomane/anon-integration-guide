@@ -135,10 +135,10 @@ export type MarketCompactData = {
     name: string;
     address: `0x${string}`;
     expiry: string;
-    pt: string;
-    yt: string;
-    sy: string;
-    underlyingAsset: string;
+    pt: `${number}-0x${string}`;
+    yt: `${number}-0x${string}`;
+    sy: `${number}-0x${string}`;
+    underlyingAsset: `${number}-0x${string}`;
     details: MarketDetails;
     isNew: boolean;
     isPrime: boolean;

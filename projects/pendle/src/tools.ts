@@ -8,7 +8,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'addLiquidityToMarketPool',
-            description: `Add liquidity to a liquidity pool on the given market on the given chain.  The liquidity must be provided by a single token, which will be zapped in to the pool.`,
+            description: `Add liquidity to the liquidity pool of the given market on the given chain.  The liquidity must be provided by a single token; if the token is different from the underlying asset of the pool, it will be zapped in to the pool.`,
             strict: true,
             parameters: {
                 type: 'object',
@@ -23,8 +23,8 @@ export const tools = [
                         description: 'Market address (e.g. "0x...")',
                     },
                     tokenInAddress: {
-                        type: 'string',
-                        description: 'Address of the token to be zapped in (e.g. "0x...")',
+                        type: ['string', 'null'],
+                        description: 'Address of the token to be used to add liquidity (e.g. "0x...").  If null, the underlying asset of the pool will be used.',
                     },
                     tokenInAmount: {
                         type: 'number',
@@ -32,8 +32,7 @@ export const tools = [
                     },
                     slippageTolerance: {
                         type: ['number', 'null'],
-                        description:
-                            'Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%).  This is needed because the provided token will be swapped to PT and SY tokens before being added to the pool.',
+                        description: 'Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%).  Used only when zapping in.',
                     },
                 },
                 required: ['chainName', 'marketAddress', 'tokenInAddress', 'tokenInAmount', 'slippageTolerance'],
@@ -45,7 +44,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'removeLiquidityFromMarketPool',
-            description: `Remove a percentage of the user's deposited liquidity from a market pool, and convert it to the output token.  Omit the removal percentage to remove all of the user's liquidity from the pool.`,
+            description: `Remove a percentage of the user's deposited liquidity from the pool of the given market.  Optionally, convert (zap) it to a custom output token.  Omit the removal percentage to remove all of the user's liquidity from the pool.`,
             strict: true,
             parameters: {
                 type: 'object',
@@ -60,8 +59,8 @@ export const tools = [
                         description: 'Market address (e.g. "0x...")',
                     },
                     tokenOutAddress: {
-                        type: 'string',
-                        description: 'Address of the token to be converted to (e.g. "0x...")',
+                        type: ['string', 'null'],
+                        description: 'Address of the token to be converted to (e.g. "0x...").  If null, the user will receive the underlying token of the pool.',
                     },
                     removalPercentage: {
                         type: ['number', 'null'],

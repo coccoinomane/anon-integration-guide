@@ -1,14 +1,14 @@
 import { erc20Abi } from 'viem';
 import { FunctionOptions, FunctionReturn, toResult, EVM, EvmChain } from '@heyanon/sdk';
 import { ConvertParams, ConvertResponse, PendleApiError, PendleClient } from '../helpers/client';
-import { fetchTokenInfoFromAddress } from '../helpers/tokens';
+import { fetchTokenInfoFromAddress, TokenInfo } from '../helpers/tokens';
 import { DEFAULT_SLIPPAGE_TOLERANCE, PENDLE_LP_TOKEN_DECIMALS, supportedChains } from '../constants';
 import { toHumanReadableAmount } from '../helpers/format';
 
 interface Props {
     chainName: string;
     marketAddress: `0x${string}`;
-    tokenOutAddress: `0x${string}`;
+    tokenOutAddress: `0x${string}` | null;
     removalPercentage: number | null;
     slippageTolerance: number | null;
     redeemRewards: boolean | null;
@@ -62,9 +62,29 @@ export async function removeLiquidityFromMarketPool(
         args: [account],
     });
 
-    // Get info on the output token (and convert it to the correct
-    // address if it is the native token)
-    const outputTokenInfo = await fetchTokenInfoFromAddress(provider, tokenOutAddress);
+    // Get address of the underlying asset of the market
+    const underlyingAssetAddress = market?.underlyingAsset?.split('-')[1] as `0x${string}`;
+    if (!underlyingAssetAddress) {
+        return toResult(`Could not find underlying asset for market, please explicitly specify output token`);
+    }
+
+    // Get info on the output token (and if native token it will also
+    // convert its address to Pendle native token address)
+    let outputTokenInfo: TokenInfo;
+    let enableAggregator: boolean;
+    if (tokenOutAddress) {
+        outputTokenInfo = await fetchTokenInfoFromAddress(provider, tokenOutAddress);
+        enableAggregator = true;
+    } else {
+        // If no output token address is provided, use the underlying asset of the market
+        outputTokenInfo = await fetchTokenInfoFromAddress(provider, underlyingAssetAddress);
+        enableAggregator = false;
+    }
+
+    // If the output token is the same as the underlying asset, we don't need to zap out
+    if (outputTokenInfo.address.toLowerCase() === underlyingAssetAddress.toLowerCase()) {
+        enableAggregator = false;
+    }
 
     // Determine the amount of liquidity to remove
     if (lpBalanceInWei === 0n) {
@@ -74,17 +94,17 @@ export async function removeLiquidityFromMarketPool(
     if (removalPercentage === 1) {
         lpBalanceToRemoveInWei = lpBalanceInWei;
         notify(
-            `Will remove all of your liquidity from ${market.name} to ${outputTokenInfo.symbol}, for a total of ${toHumanReadableAmount(lpBalanceToRemoveInWei, PENDLE_LP_TOKEN_DECIMALS)} LP tokens`,
+            `Will remove all of your liquidity from ${market.name} market to ${outputTokenInfo.symbol}, for a total of ${toHumanReadableAmount(lpBalanceToRemoveInWei, PENDLE_LP_TOKEN_DECIMALS)} LP tokens`,
         );
     } else {
         const removalPercentageAsBigIntPercentage = BigInt(removalPercentage * 10000);
         lpBalanceToRemoveInWei = (lpBalanceInWei * removalPercentageAsBigIntPercentage) / 10000n;
         notify(
-            `Will remove ${removalPercentage * 100}% of your liquidity from ${market.name} to ${outputTokenInfo.symbol}, for a total of ${toHumanReadableAmount(lpBalanceToRemoveInWei, PENDLE_LP_TOKEN_DECIMALS)} LP tokens`,
+            `Will remove ${removalPercentage * 100}% of your liquidity from ${market.name} market to ${outputTokenInfo.symbol}, for a total of ${toHumanReadableAmount(lpBalanceToRemoveInWei, PENDLE_LP_TOKEN_DECIMALS)} LP tokens`,
         );
     }
 
-    notify(`Preparing to remove liquidity from Pendle market ${market.name}...`);
+    notify(`Preparing to remove liquidity from Pendle market ${market.name}${enableAggregator ? ` (zap out to ${outputTokenInfo.symbol})` : ''}...`);
 
     // Prepare API call to get TX data from Pendle
     const convertParams: ConvertParams = {
@@ -94,7 +114,7 @@ export async function removeLiquidityFromMarketPool(
         tokensOut: outputTokenInfo.address,
         receiver: account,
         slippage: slippageTolerance,
-        enableAggregator: true,
+        enableAggregator,
         redeemRewards,
     };
 

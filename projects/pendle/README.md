@@ -38,17 +38,20 @@ Please note that most portfolio tools return positions across all chains, withou
     - [TODO] Swap 1 ETH to stETH YT on Ethereum on Pendle
     - [TODO] Swap 1 stETH-PT to USDC on Ethereum on Pendle
 
-Please note that these commands will allow you to swap to / from all the tokens supported by the DEX aggregators used by Pendle, including tokens not listed in the token dropdown in the Pendle UI.
+Please note that you will be able to zap in / zap out to all the tokens supported by the DEX aggregators used by Pendle (Kyberswap, Okx, etc.), including those not listed in the token dropdown in the Pendle UI.
 
 ### Add and remove liquidity
 
-    - Provide 100 USDC of liquidity to stETH pool on Ethereum on Pendle
-    - Zap 100 USDC to wstETH pool on Ethereum on Pendle // same as above
-    - Provide 100 USDC of liquidity to stETH pool on Ethereum on Pendle, with a 1% slippage tolerance
-    - Remove my stETH liquidity to ETH on Ethereum on Pendle
-    - Remove half of my stETH liquidity to ETH on Ethereum on Pendle
+    - Add 1 stETH of liquidity to wstETH market on Ethereum on Pendle // in-kind liquidity add
+    - Add 100 USDC of liquidity to wstETH market on Ethereum on Pendle // zap in from custom token
+    - Zap 100 USDC to wstETH market on Ethereum on Pendle // same as above
+    - Zap 100 USDC to wstETH market on Ethereum on Pendle, with 1% slippage tolerance // zap in with custom slippage
+    - Remove my liquidity from wstETH market on Pendle on Ethereum // in-kind liquidity remove
+    - Remove my liquidity from wstETH market to USDC on Pendle on Ethereum // zap out to custom token
+    - Zap my liquidity from wstETH market to USDC on Pendle on Ethereum // same as above
+    - Remove half of my liquidity from wstETH market to USDC on Pendle on Ethereum // remove just a part of liquidity
 
-Please note that these commands will allow you to zap in / zap out to all the tokens supported by the DEX aggregators used by Pendle, including tokens not listed in the token dropdown in the Pendle UI.
+Please note that you will be able to zap in / zap out to all the tokens supported by the DEX aggregators used by Pendle (Kyberswap, Okx, etc.), including those not listed in the token dropdown in the Pendle UI.
 
 ## Rewards
 
@@ -72,14 +75,19 @@ and then you can ask questions directly:
 
 ```bash
 pnpm ask-pendle "What can I do on Pendle?"
-pnpm ask-pendle "LP 1000 USDC into pool sUSDCe on Ethereum"
-pnpm ask-pendle "Remove half of my liquidity from pool sUSDCe to ETH on Ethereum"
+pnpm ask-pendle "LP 1000 USDC into USDe market on Ethereum"
+pnpm ask-pendle "Zap half of my liquidity from USDe market to ETH on Ethereum"
 ```
 
 Options:
 
 - `--debug-llm`: Show the actual LLM responses
 - `--debug-tools`: Show the output of every tool call
+
+## Worth noting
+
+- The integration will automatically determine whether to zap in / zap out to a custom token or not, based on the input / output token provided.
+- Zapping tokens not whitelisted by Pendle (e.g. WBTC on Base) will fail with a clear error message.
 
 ## Useful links
 
