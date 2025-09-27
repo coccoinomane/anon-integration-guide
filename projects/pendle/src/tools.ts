@@ -85,7 +85,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'getMyPositionsPortfolio',
-            description: `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio, across all chains, together with the total portfolio value (TVL).  A position can be a principal token (PT), a yield token (YT) or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
+            description: `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio, across all chains, together with the total portfolio value (TVL).  A position can be a principal token (PT), a yield token (YT), standardized yield token (SY), or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
             strict: true,
             parameters: {
                 type: 'object',
@@ -190,7 +190,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'searchMarketsByName',
-            description: `Search for active markets with names matching the given string, on the given chain.  Returns minimal information including the name, address and expiry date of the markets.  Useful to get the address of a market to use in the getDataOnMarket function.`,
+            description: `Search for active markets with names matching the given string.  Returns minimal information including the name, address and expiry date of the markets.  Useful to get the address of a market from its name, and use it in the getDataOnMarket function.`,
             strict: true,
             parameters: {
                 type: 'object',

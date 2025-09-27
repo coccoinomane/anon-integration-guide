@@ -16,6 +16,11 @@ const DEFAULT_TIMEOUT = 15000;
           |___/  |_|
 */
 
+export type TokenAmountResponseWithChainId = {
+    token: `${number}-0x${string}`;
+    amount: string;
+};
+
 export type TokenAmountResponse = {
     token: `0x${string}`;
     amount: string;
@@ -84,20 +89,20 @@ export type TokenPosition = {
     balance: string;
     activeBalance: string;
     valuation: number;
-    claimTokenAmounts: TokenAmountResponse[];
+    claimTokenAmounts: TokenAmountResponseWithChainId[];
 };
 
 export type MarketPosition = {
-    marketId: string;
+    marketId: `${number}-0x${string}`;
     pt: TokenPosition;
     yt: TokenPosition;
     lp: TokenPosition;
 };
 
 export type SyPosition = {
-    syId: string;
+    syId: `${number}-0x${string}`;
     balance: string;
-    claimTokenAmounts: TokenAmountResponse[];
+    claimTokenAmounts: TokenAmountResponseWithChainId[];
 };
 
 export type ChainPositions = {

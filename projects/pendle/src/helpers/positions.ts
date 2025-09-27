@@ -48,8 +48,8 @@ export type FlattenedPositionsResult = {
 };
 
 /**
- * Flattens a ChainPositions[] array into individual PT, YT, and LP positions
- * and sorts them by valuation in descending order
+ * Flattens a ChainPositions[] array into individual PT, YT, and LP
+ * positions and sorts them by valuation in descending order
  *
  * @param chainPositions - The chain positions array to flatten
  * @param includeZeroPositions - Whether to include positions with zero valuation (default: false)
@@ -65,7 +65,8 @@ export async function flattenAndSortPositions(
     let totalValuation = 0;
     const pendleClient = new PendleClient();
 
-    // Helper function to process a single market position
+    // Helper function to process a single PT, YT, or
+    // LP market position
     const processMarketPosition = (
         market: MarketPosition,
         chain: ChainPositions,
