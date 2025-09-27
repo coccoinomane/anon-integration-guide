@@ -210,4 +210,51 @@ export const tools = [
             },
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'getPendleTokensAddressFromName',
+            description: [
+                'Given the name of a PT, YT or SY token (such as "PT wstETH", "YT wstETH" and "SY wstETH"), return the address of that token on the given chain.  Only returns tokens with expiry in the future, unless an expiry date is specified.',
+                'Useful to find the actual addresses of Pendle tokens for the swap tools.',
+                'The token name should be formatted in the following way:',
+                ' - For principal tokens: "PT " with a space followed by the token name (e.g. "PT wstETH", "PT USDe")',
+                ' - For yield tokens: "YT " with a space followed by the token name (e.g. "YT wstETH", "YT USDe")',
+                ' - For standardized yield tokens: "SY " with a space followed by the token name (e.g. "SY wstETH", "SY USDe")',
+                'The function will exclude PT and YT tokens that have already expired. SY tokens are always included as they have no expiry date.',
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    pendleTokenName: {
+                        type: 'string',
+                        description: 'Name of the token (e.g. "PT wstETH", "YT wstETH", "SY wstETH")',
+                    },
+                    shortExpiry: {
+                        type: ['string', 'null'],
+                        description: [
+                            'Optional expiry date of the token, in short format. If not provided, the function will return addresses of all tokens with expiry in the future.',
+                            'Expiry date should be provided in the following format:',
+                            ' - Day first (30) (optional)',
+                            ' - Then Three-letter month abbreviation (MAR) (optional)',
+                            ' - Then Four-digit year (2026)',
+                            'For example:',
+                            ' - "30MAR2026" for expiration on March 30, 2026',
+                            ' - "12DEC2025" for expiration on December 12, 2025',
+                            ' - "MAR2027" for expiration during the month of March of the year 2027',
+                            ' - "2026" for expiration during the year 2026',
+                        ].join('\n'),
+                    },
+                },
+                required: ['chainName', 'pendleTokenName', 'shortExpiry'],
+                additionalProperties: false,
+            },
+        },
+    },
 ] satisfies AdapterExport['tools'];

@@ -6,3 +6,4 @@ export * from './getMarketsWithHighestApy';
 export * from './getLiquidityPoolsWithHighestApy';
 export * from './getDataOnMarket';
 export * from './searchMarketsByName';
+export * from './getPendleTokensAddressFromName';

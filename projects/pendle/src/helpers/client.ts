@@ -209,6 +209,29 @@ export type GetMarketDataResponse = {
     assetPriceUsd: number;
 };
 
+export type PendleAssetTag = 'PT' | 'YT' | 'SY' | 'PENDLE_LP';
+
+export type PendleAsset = {
+    /** Asset name (e.g., "PT FRAX-USDC") */
+    name: string;
+    /** Number of decimals for the token */
+    decimals: number;
+    /** Token contract address */
+    address: `0x${string}`;
+    /** Token symbol (e.g., "PT-FRAXUSDC_CurveLP_Convex-30MAR2023") */
+    symbol: string;
+    /** Asset tags indicating token type */
+    tags: PendleAssetTag[];
+    /** Expiry date for PT/YT tokens (ISO 8601 format) */
+    expiry?: string;
+    /** URL to the asset's icon */
+    proicon?: string;
+};
+
+export type GetAssetsResponse = {
+    assets: PendleAsset[];
+};
+
 /*
    ____   _   _                  _
   / ___| | | (_)   ___   _ __   | |_
@@ -316,6 +339,16 @@ export class PendleClient {
         const response = await this.call<GetMarketDataResponse>(`v2/${chainId}/markets/${marketAddress}/data`, params);
 
         return response;
+    }
+
+    /**
+     * Get all PT, YT, LP, and SY tokens with their metadata for a given chain
+     */
+    @staticMemoize()
+    async getAllAssets(chainId: number): Promise<PendleAsset[]> {
+        const response = await this.call<GetAssetsResponse>(`v3/${chainId}/assets/all`);
+
+        return response.assets;
     }
 }
 

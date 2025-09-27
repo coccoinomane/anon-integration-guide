@@ -1,5 +1,6 @@
 import { erc20Abi, PublicClient } from 'viem';
 import { HEYANON_NATIVE_TOKEN_ADDRESS, PENDLE_NATIVE_TOKEN_ADDRESS } from '../constants';
+import { PendleAsset } from './client';
 
 /**
  * Basic info about an ERC20 token
@@ -73,4 +74,23 @@ export async function fetchTokenInfoFromAddress(publicClient: PublicClient, addr
         name: name as string,
         decimals,
     };
+}
+
+/**
+ * Given a list of Pendle assets, return only those with expiry dates in the future
+ */
+export function filterActiveAssets(allAssets: PendleAsset[], keepSyTokens: boolean = true): PendleAsset[] {
+    const now = new Date();
+
+    return allAssets.filter((asset) => {
+        // If asset has no expiry, it's not a time-bound asset (like SY tokens)
+        // and should always be included
+        if (!asset.expiry) {
+            return keepSyTokens;
+        }
+
+        // Parse the expiry date and check if it's in the future, and include it if it is
+        const expiryDate = new Date(asset.expiry);
+        return expiryDate > now;
+    });
 }

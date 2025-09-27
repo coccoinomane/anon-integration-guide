@@ -21,5 +21,6 @@ export default {
         'getLiquidityPoolsWithHighestApy',
         'getDataOnMarket',
         'searchMarketsByName',
+        'getPendleTokensAddressFromName',
     ],
 } satisfies AdapterExport;

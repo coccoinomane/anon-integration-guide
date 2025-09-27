@@ -31,14 +31,13 @@ Please note that most portfolio tools return positions across all chains, withou
     - [TODO] Convert my sUSDe on Ethereum on Pendle // same as above
     - [TODO] Redeem my stETH PT and YT on Ethereum on Pendle
 
-### Create and manage positions
+### Buy and sell PT & YT tokens
 
-    - [TODO] Swap 1 ETH to stETH PT on Ethereum on Pendle
-    - [TODO] Swap 1 ETH to stETH PT on Ethereum on Pendle with a 1% slippage tolerance
-    - [TODO] Swap 1 ETH to stETH YT on Ethereum on Pendle
-    - [TODO] Swap 1 stETH-PT to USDC on Ethereum on Pendle
-
-Please note that you will be able to zap in / zap out to all the tokens supported by the DEX aggregators used by Pendle (Kyberswap, Okx, etc.), including those not listed in the token dropdown in the Pendle UI.
+    - [TODO] Swap 100 USDC for PT-wstETH on Ethereum on Pendle
+    - [TODO] Swap 100 USDC for YT-wstETH on Ethereum on Pendle // same but buy yield tokens instead
+    - [TODO] Swap 100 USDC for PT-wstETH on Ethereum on Pendle with 1% slippage tolerance // specify slippage
+    - [TODO] Buy 100 PT-wstETH on Ethereum on Pendle // will use underlying token to buy (wstETH)
+    - [TODO] Swap USDC to get exactly 1 PT-wstETH on Ethereum on Pendle // obtain exact amount IS THIS EVEN POSSIBLE?
 
 ### Add and remove liquidity
 
@@ -58,6 +57,12 @@ Please note that you will be able to zap in / zap out to all the tokens supporte
     - [TODO] Show my claimable rewards on Pendle
     - [TODO] Claim all my rewards across chains on Pendle
     - [TODO] Claim rewards for the sUSDe Ethereum market on Pendle
+
+### Find addresses of Pendle tokens
+
+    - Address of Pendle wstETH principal token expiring on December 2027 on Ethereum
+    - Address of Pendle cbETH yield token on Base
+    - Address of Pendle mUSDC SY token on Base
 
 ## Test with the local agent
 
