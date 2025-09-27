@@ -7,8 +7,9 @@ import * as heyAnonFunctions from '../functions';
 import * as agentFunctions from './functions';
 import util from 'util';
 import chalk from 'chalk';
-import { createWalletClient, http, PublicClient } from 'viem';
+import { createPublicClient, createWalletClient, http } from 'viem';
 import { Exchange } from 'ccxt';
+import { getViemChainFromChainId } from '../helpers/chains';
 
 // AI configuration
 const OPENAI_MODEL = 'gpt-4o';
@@ -30,13 +31,13 @@ interface ConversationMessage {
     name?: string;
 }
 
-function getSystemPrompt(chainName: string, account: string) {
+function getSystemPrompt(account: string) {
     return `You will interact with ${PROTOCOL_NAME} protocol via your tools.
  You MUST ALWAYS call a tool to get information. 
  NEVER try to guess token addresses or pool addresses without calling the appropriate tool.
  You WILL NOT modify token and pool addresses, names, ids or symbols, not even to make them plural.
  All tools that require the 'chainName' and 'account' arguments will use the following default values:
- chainName = ${chainName}
+ chainName = Ethereum
  account = ${account}".`;
 }
 
@@ -70,7 +71,6 @@ function getLlmModel() {
 
 interface Options {
     action: string;
-    provider: PublicClient;
     debugLlm?: boolean;
     debugTools?: boolean;
     notify?: (message: string) => Promise<void>;
@@ -85,12 +85,7 @@ interface Options {
  * The agent has an additional step to analyze the data provided by the tools
  * and provide a final answer.
  */
-export async function agent({ action, provider, debugLlm, debugTools, notify }: Options): Promise<FunctionReturn> {
-    const chainName = provider.chain?.name;
-    if (!chainName) {
-        throw new Error('Could not determine chain name from provider');
-    }
-
+export async function agent({ action, debugLlm, debugTools, notify }: Options): Promise<FunctionReturn> {
     const llmClient = getLlmClient();
 
     const privateKey = process.env.PRIVATE_KEY;
@@ -105,9 +100,17 @@ export async function agent({ action, provider, debugLlm, debugTools, notify }: 
     // Create minimal FunctionOptions object
     const functionOptions: FunctionOptions = {
         evm: {
-            getProvider: () => provider,
+            getProvider: (chainId: number) =>
+                createPublicClient({
+                    chain: getViemChainFromChainId(chainId),
+                    transport: http(),
+                }),
             getAddress: () => Promise.resolve(signer.address),
             sendTransactions: async (props: EVM.types.SendTransactionProps) => {
+                const provider = createPublicClient({
+                    chain: getViemChainFromChainId(props.chainId),
+                    transport: http(),
+                });
                 // Create wallet client
                 const walletClient = createWalletClient({
                     account: signer,
@@ -167,7 +170,7 @@ export async function agent({ action, provider, debugLlm, debugTools, notify }: 
     const messages: ConversationMessage[] = [
         {
             role: 'system',
-            content: getSystemPrompt(chainName, signer.address),
+            content: getSystemPrompt(signer.address),
         },
         { role: 'user', content: action },
     ];
