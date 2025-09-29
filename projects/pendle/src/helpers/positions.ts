@@ -1,5 +1,7 @@
 import { getChainNameFromChainId } from './chains';
-import { MarketCompactData, ChainPositions, PendleClient, MarketPosition } from './client';
+import { MarketCompactData, ChainPositions, PendleClient, MarketPosition, PendleAsset } from './client';
+import { to$$$ } from './format';
+import { formatUnits } from 'viem';
 
 /**
  * Represents a single token position (PT, YT, or LP) with its context
@@ -11,6 +13,8 @@ export type FlattenedTokenPosition = {
     marketId: string;
     /** Token type: PT, YT, or LP */
     tokenType: 'PT' | 'YT' | 'LP';
+    /** Token address */
+    tokenAddress?: `0x${string}`;
     /** Position type: open or closed */
     positionStatus: 'open' | 'closed';
     /** Valuation in USD */
@@ -31,8 +35,10 @@ export type FlattenedTokenPosition = {
     marketLpNonBoostedApy?: number;
     /** Market implied APY, that is, the APY at which the market trades (different from underlying APY) */
     marketImpliedApy?: number;
-    /** Full market details (optional) */
+    /** Full market details */
     market?: MarketCompactData;
+    /** Full asset details */
+    asset?: PendleAsset;
 };
 
 /**
@@ -67,7 +73,7 @@ export async function flattenAndSortPositions(
 
     // Helper function to process a single PT, YT, or
     // LP market position
-    const processMarketPosition = (
+    const processMarketPosition = async (
         market: MarketPosition,
         chain: ChainPositions,
         chainName: string,
@@ -81,31 +87,46 @@ export async function flattenAndSortPositions(
             throw new Error(`Market data not found for market ${marketAddress}`);
         }
 
+        // Get all assets
+        const assets = await pendleClient.getAllAssets(chain.chainId);
+
         // Process each token type (PT, YT, LP)
         const tokenTypes: Array<'pt' | 'yt' | 'lp'> = ['pt', 'yt', 'lp'];
 
         for (const tokenKey of tokenTypes) {
-            const token = market[tokenKey];
-            if (token && (includeZeroPositions || token.balance !== '0')) {
+            const pos = market[tokenKey];
+            if (pos && (includeZeroPositions || pos.balance !== '0')) {
+                // Extract token address of position
+                let tokenAddress: `0x${string}`;
+                if (tokenKey === 'lp') {
+                    tokenAddress = marketData.address;
+                } else {
+                    tokenAddress = marketData[tokenKey].split('-')[1] as `0x${string}`;
+                }
+                // Get asset details
+                const asset = assets.find((a) => a.address === tokenAddress);
+                // Build flattened position row
                 flattenedPositions.push({
                     chainId: chain.chainId,
                     chainName,
                     marketId: market.marketId,
                     tokenType: tokenKey.toUpperCase() as 'PT' | 'YT' | 'LP',
+                    tokenAddress,
                     positionStatus,
-                    valuation: token.valuation || 0,
-                    balance: token.balance,
-                    activeBalance: token.activeBalance,
-                    claimTokenAmounts: token.claimTokenAmounts,
+                    valuation: pos.valuation || 0,
+                    balance: pos.balance,
+                    activeBalance: pos.activeBalance,
+                    claimTokenAmounts: pos.claimTokenAmounts,
                     marketName: marketData.name,
                     marketExpiry: marketData.expiry,
                     marketLpNonBoostedApy: marketData.details.aggregatedApy,
                     marketImpliedApy: marketData.details.impliedApy,
                     market: marketData,
+                    asset,
                 });
 
-                if (token.valuation > 0) {
-                    totalValuation += token.valuation;
+                if (pos.valuation) {
+                    totalValuation += pos.valuation;
                 }
             }
         }
@@ -123,14 +144,14 @@ export async function flattenAndSortPositions(
         // Process open positions
         if (chain.openPositions) {
             for (const market of chain.openPositions) {
-                processMarketPosition(market, chain, chainName, 'open', marketDetailsMap);
+                await processMarketPosition(market, chain, chainName, 'open', marketDetailsMap);
             }
         }
 
         // Process closed positions if requested
         if (includeClosedPositions && chain.closedPositions) {
             for (const market of chain.closedPositions) {
-                processMarketPosition(market, chain, chainName, 'closed', marketDetailsMap);
+                await processMarketPosition(market, chain, chainName, 'closed', marketDetailsMap);
             }
         }
     }
@@ -169,36 +190,50 @@ export function formatFlattenedPositions(flattenedPositions: FlattenedTokenPosit
         switch (position.tokenType) {
             case 'LP':
                 if (position.marketLpNonBoostedApy) {
-                    apyString = `(unboosted APY: ${(100 * position.marketLpNonBoostedApy).toFixed(2)}%)`;
+                    apyString = `unboosted APY: ${(100 * position.marketLpNonBoostedApy).toFixed(2)}%`;
                 }
                 break;
             case 'YT':
                 if (position.marketImpliedApy) {
-                    apyString = `(implied APY: ${(100 * position.marketImpliedApy).toFixed(2)}%)`;
+                    apyString = `implied APY: ${(100 * position.marketImpliedApy).toFixed(2)}%`;
                 }
                 break;
             case 'PT':
                 break;
         }
 
-        let parts: string[] = [
-            `$${position.valuation.toFixed(2)}`,
-            `${position.tokenType}`,
-            `${position.positionStatus === 'closed' ? '(closed)' : ''}`,
-            `position`,
-            `on ${position.marketName} market`,
-            `on ${position.chainName} chain`,
-            `${apyString}`,
-        ].filter(Boolean); // Remove empty strings
-
-        // Add expiry if available
+        let expiryString = '';
         if (position.marketExpiry) {
-            parts.push(`expires ${position.marketExpiry}`);
+            expiryString = `expires on ${position.marketExpiry}`;
         }
 
-        // Add claimable yield indicator
+        let claimableYieldString = '';
         if (position.claimTokenAmounts && position.claimTokenAmounts.length > 0) {
-            parts.push(`(has claimable yield)`);
+            claimableYieldString = `has claimable yield`;
+        }
+
+        let balanceString = '';
+        if (position.asset?.decimals) {
+            balanceString = `${formatUnits(BigInt(position.balance), position.asset.decimals)} ${position.asset.name} tokens`;
+        }
+
+        let parts: string[] = [
+            `${to$$$(position.valuation)}`,
+            `${position.tokenType}`,
+            `${position.positionStatus === 'closed' ? 'closed' : ''}`,
+            `position`,
+            `on ${position.marketName} market`,
+            `on ${position.chainName} chain:`,
+            `${balanceString},`,
+            `${apyString ? `${apyString},` : ''}`,
+            `${expiryString ? `${expiryString},` : ''}`,
+            `${claimableYieldString ? `${claimableYieldString},` : ''}`,
+        ];
+
+        // Remove last comma if it exists
+        parts = parts.filter(Boolean);
+        if (parts[parts.length - 1].endsWith(',')) {
+            parts[parts.length - 1] = parts[parts.length - 1].slice(0, -1);
         }
 
         formattedParts.push(parts.join(' '));

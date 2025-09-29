@@ -43,9 +43,9 @@ export function formatMarketData(marketData: GetMarketDataResponse, market: Mark
     parts.push(` - The underlying asset earns an APY of ${(marketData.underlyingApy * 100).toFixed(2)}%`);
     parts.push(` - Providing liquidity earns you from ${(market.details.aggregatedApy * 100).toFixed(2)}% to ${(market.details.maxBoostedApy * 100).toFixed(2)}% APY (max boost)`);
     if (includeTokensAddresses) {
-        parts.push(` - PT address: ${market.pt}`);
-        parts.push(` - YT address: ${market.yt}`);
-        parts.push(` - SY address: ${market.sy}`);
+        parts.push(` - PT address: ${market.pt.split('-')[1]}`);
+        parts.push(` - YT address: ${market.yt.split('-')[1]}`);
+        parts.push(` - SY address: ${market.sy.split('-')[1]}`);
         parts.push(` - LP address: ${market.address}`);
         parts.push(` - Underlying asset address: ${market.underlyingAsset}`);
     }

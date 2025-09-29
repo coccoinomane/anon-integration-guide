@@ -15,7 +15,10 @@ More information on Pendle Finance can be found on their own academy page: https
     - Show my pools on Pendle
     - Value of my stETH position on Base chain on Pendle
 
-Please note that most portfolio tools return positions across all chains, without the need to specify the chain.
+Please note that:
+
+- portfolio tools return positions across all chains, without the need to specify the chain
+- for each position both the token balance and dollar valuations will be shown
 
 ### Available markets & pools
 

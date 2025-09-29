@@ -41,7 +41,7 @@ export const MIN_LIQUIDITY_FOR_MARKET = 100000;
 /**
  * Default slippage tolerance
  */
-export const DEFAULT_SLIPPAGE_TOLERANCE = 0.02;
+export const DEFAULT_SLIPPAGE_TOLERANCE = 0.01;
 
 /**
  * The address used by Pendle API to identify the native token

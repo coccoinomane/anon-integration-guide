@@ -4,7 +4,8 @@ import { flattenAndSortPositions, formatFlattenedPositions } from '../helpers/po
 import { MAX_POSITIONS_IN_RESULTS } from '../constants';
 import { getChainNameFromChainId } from '../helpers/chains';
 import { fetchTokenInfoFromAddress } from '../helpers/tokens';
-import { toHumanReadableAmount } from '../helpers/format';
+import { to$$$ } from '../helpers/format';
+import { formatUnits } from 'viem';
 
 interface Props {}
 
@@ -26,7 +27,7 @@ export async function getMyPositionsPortfolio(_props: Props, { notify, evm: { ge
 
     // Build and return output string
     const parts = [
-        `Found ${flattenedResult.totalPositions} positions in your portfolio, worth a total of $${flattenedResult.totalValuation.toFixed(2)}`,
+        `Found ${flattenedResult.totalPositions} positions in your portfolio, worth a total of ${to$$$(flattenedResult.totalValuation)}`,
         firstNPositions.length !== flattenedResult.totalPositions ? `Showing the top ${MAX_POSITIONS_IN_RESULTS} positions by value:` : '',
         formattedOutput,
     ];
@@ -42,11 +43,13 @@ export async function getMyPositionsPortfolio(_props: Props, { notify, evm: { ge
                 const chainName = getChainNameFromChainId(chain.chainId);
                 const subparts = [];
                 for (const syPosition of chain.syPositions) {
+                    if (syPosition.balance === '0') {
+                        continue;
+                    }
                     const tokenAddress = syPosition.syId.split('-')[1] as `0x${string}`;
                     const provider = getProvider(chain.chainId);
                     const tokenInfo = await fetchTokenInfoFromAddress(provider, tokenAddress);
-                    const humanReadableBalance = toHumanReadableAmount(BigInt(syPosition.balance), tokenInfo.decimals);
-                    subparts.push(`${humanReadableBalance} ${tokenInfo.symbol}`);
+                    subparts.push(`${formatUnits(BigInt(syPosition.balance), tokenInfo.decimals)} ${tokenInfo.symbol}`);
                 }
                 parts.push(` - ${chainName} chain: ${subparts.join(', ')}`);
             }
