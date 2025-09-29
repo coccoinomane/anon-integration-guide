@@ -10,7 +10,7 @@ export interface TokenInfo {
 }
 
 /**
- * Tokens supported by the agent
+ * List of tokens that the agent will be able to resolve from their symbol
  */
 export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
     [Chain.ETHEREUM]: [
@@ -90,13 +90,4 @@ export function getTokenInfoFromSymbol(chainName: EvmChain, symbol: string): Tok
     const chainTokens = tokens[chainName];
     if (!chainTokens) return null;
     return chainTokens.find((token) => token.symbol.toUpperCase() === symbol.toUpperCase()) || null;
-}
-
-/**
- * Return token details from its address
- */
-export function getTokenInfoFromAddress(chainName: EvmChain, address: `0x${string}`): TokenInfo | null {
-    const chainTokens = tokens[chainName];
-    if (!chainTokens) return null;
-    return chainTokens.find((token) => token.address.toLowerCase() === address.toLowerCase()) || null;
 }

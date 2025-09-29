@@ -37,7 +37,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'getTokenBalance',
-            description: "Get the balance of a token in the user's wallet.",
+            description: 'Fetch on-chain the balance for the given token for the given user address.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -46,16 +46,16 @@ export const tools = [
                         enum: supportedChains.map(EVM.utils.getChainName),
                         description: 'Chain name',
                     },
-                    account: {
-                        type: 'string',
-                        description: 'Account address',
-                    },
                     tokenAddress: {
                         type: 'string',
-                        description: 'Token address',
+                        description: 'Token address (e.g. "0x...")',
+                    },
+                    userAddress: {
+                        type: ['string', 'null'],
+                        description: "User address to check the balance for.  If not provided, the function will use the agent's wallet address.",
                     },
                 },
-                required: ['chainName', 'account', 'tokenAddress'],
+                required: ['chainName', 'tokenAddress', 'userAddress'],
                 additionalProperties: false,
             },
         },

@@ -58,11 +58,14 @@ Please note that you will be able to zap in / zap out to all the tokens supporte
     - [TODO] Claim all my rewards across chains on Pendle
     - [TODO] Claim rewards for the sUSDe Ethereum market on Pendle
 
-### Find addresses of Pendle tokens
+### Resolve Pendle tokens
 
-    - Address of Pendle wstETH principal token expiring on December 2027 on Ethereum
-    - Address of Pendle cbETH yield token on Base
-    - Address of Pendle mUSDC SY token on Base
+    - Address of cbETH yield token on Pendle on Base
+    - Address of mUSDC SY token on Pendle on Base
+    - Address of wstETH principal token expiring on December 2027 on Pendle on Ethereum
+    - Address of wstETH principal tokens that expired in 2023 on Pendle on Ethereum
+
+The Pendle token resolver is a crucial component of the integration as it determines what part of the protocol the user wants to interact with. The resolver first checks the token name and symbol, then if it does not find a match, it scans available markets that match the user query.
 
 ## Test with the local agent
 

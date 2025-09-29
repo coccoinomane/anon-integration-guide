@@ -28,7 +28,7 @@ export const tools = [
                     },
                     tokenInAmount: {
                         type: 'number',
-                        description: 'Amount of liquidity to add in terms of the input token, expressed in human readable format (e.g. 1000 for 1000 tokens)',
+                        description: 'Amount of liquidity to add in terms of the input token, expressed as decimals (e.g. 1 ETH rather than 10^18)',
                     },
                     slippageTolerance: {
                         type: ['number', 'null'],
@@ -166,7 +166,10 @@ export const tools = [
         type: 'function',
         function: {
             name: 'getDataOnMarket',
-            description: `Get the info and latest data for the given market on given chain, including yields, TVL, liquidity, trading volume, asset prices, estimated rewards, etc.`,
+            description: [
+                'Get info and latest data for the given market on given chain, including yields, TVL, liquidity, trading volume, asset prices, estimated rewards, etc.',
+                'Also include the addresses of PT, YT, SY, LP and underlying tokens for the market.',
+            ].join('\n'),
             strict: true,
             parameters: {
                 type: 'object',
@@ -190,7 +193,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'searchMarketsByName',
-            description: `Search for active markets with names matching the given string.  Returns minimal information including the name, address and expiry date of the markets.  Useful to get the address of a market from its name, and use it in the getDataOnMarket function.`,
+            description: 'Search for active markets with names matching the given string.  Returns minimal information including the name, address and expiry date of the markets.',
             strict: true,
             parameters: {
                 type: 'object',
@@ -213,15 +216,11 @@ export const tools = [
     {
         type: 'function',
         function: {
-            name: 'getPendleTokensAddressFromName',
+            name: 'getPendleTokenAddressFromTypeAndName',
             description: [
-                'Given the name of a PT, YT or SY token (such as "PT wstETH", "YT wstETH" and "SY wstETH"), return the address of that token on the given chain.  Only returns tokens with expiry in the future, unless an expiry date is specified.',
+                'Given the type and name of a Pendle token, return the address of that token on the given chain.  Only returns tokens with expiry in the future, unless an expiry date is specified.',
                 'Useful to find the actual addresses of Pendle tokens for the swap tools.',
-                'The token name should be formatted in the following way:',
-                ' - For principal tokens: "PT " with a space followed by the token name (e.g. "PT wstETH", "PT USDe")',
-                ' - For yield tokens: "YT " with a space followed by the token name (e.g. "YT wstETH", "YT USDe")',
-                ' - For standardized yield tokens: "SY " with a space followed by the token name (e.g. "SY wstETH", "SY USDe")',
-                'The function will exclude PT and YT tokens that have already expired. SY tokens are always included as they have no expiry date.',
+                'If this tool fails resolving a Pendle token, try with the `searchMarketsByName` tool, in case the user specified the market name rather than the token name.',
             ].join('\n'),
             strict: true,
             parameters: {
@@ -232,14 +231,21 @@ export const tools = [
                         enum: supportedChains.map(getChainName),
                         description: 'Chain name',
                     },
+                    pendleTokenType: {
+                        type: 'string',
+                        description:
+                            'Type of the token.  Can be "PT" for principal token, "YT" for yield token, "SY" for standardized yield token or "LP" for liquidity pool token',
+                        enum: ['PT', 'YT', 'SY', 'LP'],
+                    },
                     pendleTokenName: {
                         type: 'string',
-                        description: 'Name of the token (e.g. "PT wstETH", "YT wstETH", "SY wstETH")',
+                        description:
+                            'Name of the Pendle token.  Formed by the underlying token optionally followed by the maturation token in parentheses.  These, for example, are all valid names: "wstETH", "sUSDe", "kHYPE","wstETH (stETH)", "sUSDe (USDe)", "kHYPE (Hype)", etc.',
                     },
                     shortExpiry: {
                         type: ['string', 'null'],
                         description: [
-                            'Optional expiry date of the token, in short format. If not provided, the function will return addresses of all tokens with expiry in the future.',
+                            'Optional expiry date of the token, in short format. If not provided, the function will only consider non-expired tokens.',
                             'Expiry date should be provided in the following format:',
                             ' - Day first (30) (optional)',
                             ' - Then Three-letter month abbreviation (MAR) (optional)',
@@ -252,7 +258,7 @@ export const tools = [
                         ].join('\n'),
                     },
                 },
-                required: ['chainName', 'pendleTokenName', 'shortExpiry'],
+                required: ['chainName', 'pendleTokenType', 'pendleTokenName', 'shortExpiry'],
                 additionalProperties: false,
             },
         },

@@ -34,5 +34,8 @@ export async function getDataOnMarket({ chainName, marketAddress }: Props, { not
     }
 
     // Format and return result
-    return toResult(formatMarketData(marketData, market));
+    // NOTA BENE: It is important to include the tokens addresses in the result,
+    // in case the getPendleTokenAddressFromTypeAndName is not enough to resolve
+    // a Pendle token requested by the user.
+    return toResult(formatMarketData(marketData, market, true));
 }

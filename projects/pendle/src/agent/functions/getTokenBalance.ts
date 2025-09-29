@@ -1,36 +1,37 @@
 import { Address, erc20Abi, formatUnits } from 'viem';
 import { EVM, EvmChain, FunctionReturn, toResult, FunctionOptions } from '@heyanon/sdk';
 import { supportedChains } from '../../constants';
-import { getTokenInfoFromAddress } from '../tokens';
+import { fetchTokenInfoFromAddress } from '../../helpers/tokens';
 
 interface Props {
     chainName: string;
-    account: Address;
     tokenAddress: Address;
+    userAddress: Address | null;
 }
 
 /**
- * Gets the token balance for a specific account.
+ * Gets the token balance for a specific address.
  * Returns balance in human readable format.
  *
  * @param {Object} props - The input parameters
  * @param {string} props.chainName - Name of the blockchain network
- * @param {Address} props.account - Address to check balance for
  * @param {Address} props.tokenAddress - Address of token to check
+ * @param {Address} props.userAddress - Address to check balance for
  * @param {FunctionOptions} options - HeyAnon SDK options, including provider and notification handlers
  * @returns {Promise<FunctionReturn>} Token balance with symbol
  */
-export async function getTokenBalance({ chainName, account, tokenAddress }: Props, { notify, evm: { getProvider } }: FunctionOptions): Promise<FunctionReturn> {
+export async function getTokenBalance({ chainName, tokenAddress, userAddress }: Props, { notify, evm: { getAddress, getProvider } }: FunctionOptions): Promise<FunctionReturn> {
     const chainId = EVM.utils.getChainFromName(chainName as EvmChain);
     if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);
     if (!supportedChains.includes(chainId)) return toResult(`Unsupported chain: ${chainName}`, true);
 
-    const token = getTokenInfoFromAddress(chainName as EvmChain, tokenAddress);
+    const token = await fetchTokenInfoFromAddress(getProvider(chainId), tokenAddress);
     if (!token) return toResult(`Token not found: ${tokenAddress}`, true);
+    const account = userAddress ?? (await getAddress());
 
     const publicClient = getProvider(chainId);
 
-    await notify(`Getting ${token.symbol} balance...`);
+    await notify(`Getting ${token.symbol} balance for ${userAddress ?? 'your wallet'}...`);
 
     const balance = await publicClient.readContract({
         address: tokenAddress,

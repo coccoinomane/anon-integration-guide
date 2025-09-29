@@ -46,6 +46,7 @@ export function formatMarketData(marketData: GetMarketDataResponse, market: Mark
         parts.push(` - PT address: ${market.pt}`);
         parts.push(` - YT address: ${market.yt}`);
         parts.push(` - SY address: ${market.sy}`);
+        parts.push(` - LP address: ${market.address}`);
         parts.push(` - Underlying asset address: ${market.underlyingAsset}`);
     }
     return parts.join('\n');

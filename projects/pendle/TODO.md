@@ -4,8 +4,7 @@
 
 ## Minor
 
-- Update `executableFunctions` in `index.ts`
-- SY and LP support in swap tool?
-- Generic token support in swap tool?
+- Refactor convert call and/or token approval and/or send TX
+- Use toHumanReadable instead of formatUnits in add liq and remove liq tools
 
 ## Future

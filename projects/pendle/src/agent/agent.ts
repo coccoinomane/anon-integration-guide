@@ -31,14 +31,11 @@ interface ConversationMessage {
     name?: string;
 }
 
-function getSystemPrompt(account: string) {
+function getSystemPrompt() {
     return `You will interact with ${PROTOCOL_NAME} protocol via your tools.
  You MUST ALWAYS call a tool to get information. 
  NEVER try to guess token addresses or pool addresses without calling the appropriate tool.
- You WILL NOT modify token and pool addresses, names, ids or symbols, not even to make them plural.
- All tools that require the 'chainName' and 'account' arguments will use the following default values:
- chainName = Ethereum
- account = ${account}".`;
+ You WILL NOT modify token and pool addresses, names, ids or symbols, not even to make them plural.`;
 }
 
 /**
@@ -170,7 +167,7 @@ export async function agent({ action, debugLlm, debugTools, notify }: Options): 
     const messages: ConversationMessage[] = [
         {
             role: 'system',
-            content: getSystemPrompt(signer.address),
+            content: getSystemPrompt(),
         },
         { role: 'user', content: action },
     ];
