@@ -55,8 +55,8 @@ export const HyperEvmChain = defineChain({
     name: 'HyperEvm',
     nativeCurrency: {
         decimals: 18,
-        name: 'Ether',
-        symbol: 'ETH',
+        name: 'Hyperliquid HYPE',
+        symbol: 'HYPE',
     },
     rpcUrls: {
         default: {

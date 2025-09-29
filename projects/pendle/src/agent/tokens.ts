@@ -80,6 +80,24 @@ export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
             address: '0x3a43aec53490cb9fa922847385d82fe25d0e9de7',
             decimals: 18,
         },
+        {
+            type: 'erc20',
+            symbol: 'cbETH',
+            name: 'Coinbase ETH',
+            chainId: EVM.constants.ChainIds[Chain.BASE],
+            address: '0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22',
+            decimals: 18,
+        },
+    ],
+    [Chain.HYPEREVM]: [
+        {
+            type: 'native',
+            symbol: 'HYPE',
+            name: 'Hyperliquid',
+            chainId: EVM.constants.ChainIds[Chain.HYPEREVM],
+            address: EVM.constants.NATIVE_ADDRESS,
+            decimals: 18,
+        },
     ],
 };
 
