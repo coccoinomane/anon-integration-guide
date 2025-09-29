@@ -8,7 +8,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'addLiquidityToMarketPool',
-            description: `Add liquidity to the liquidity pool of the given market on the given chain.  The liquidity must be provided by a single token; if the token is different from the underlying asset of the pool, it will be zapped in to the pool.`,
+            description: `Add liquidity to the liquidity pool of the given market on the given chain.  The liquidity must be provided via a single token; if the token is different from the underlying asset of the pool, it will be zapped in to the pool.`,
             strict: true,
             parameters: {
                 type: 'object',
@@ -27,7 +27,7 @@ export const tools = [
                         description: 'Address of the token to be used to add liquidity (e.g. "0x...").  If null, the underlying asset of the pool will be used.',
                     },
                     tokenInAmount: {
-                        type: 'number',
+                        type: 'string',
                         description: 'Amount of liquidity to add in terms of the input token, expressed as decimals (e.g. 1 ETH rather than 10^18)',
                     },
                     slippageTolerance: {

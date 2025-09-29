@@ -8,7 +8,7 @@ interface Props {
     chainName: string;
     marketAddress: `0x${string}`;
     tokenInAddress: `0x${string}` | null;
-    tokenInAmount: number;
+    tokenInAmount: string;
     slippageTolerance: number | null;
 }
 
@@ -74,7 +74,7 @@ export async function addLiquidityToMarketPool(
     }
 
     // Convert amount from human readable to wei
-    const tokenAmountInWei = parseUnits(tokenInAmount.toString(), inputTokenInfo.decimals);
+    const tokenAmountInWei = parseUnits(tokenInAmount, inputTokenInfo.decimals);
 
     // Check that the user has enough token balance
     let tokenBalance: bigint;
