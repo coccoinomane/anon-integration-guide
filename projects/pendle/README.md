@@ -28,26 +28,32 @@ Please note that:
     - Show Pendle pools with highest APY on Ethereum
     - Best opportunties on Pendle to LP USDe on Ethereum
 
-### Mint & redeem
+### Buy PT and YT tokens
 
-    - [TODO] Mint PT and YT from my sUSDe on Ethereum on Pendle
-    - [TODO] Convert my sUSDe on Ethereum on Pendle // same as above
-    - [TODO] Redeem my stETH PT and YT on Ethereum on Pendle
+    - Swap 100 USDC for PT-wstETH on Pendle on Ethereum // swap any token to Pendle tokens
+    - Swap 100 USDC for YT-wstETH on Pendle on Ethereum // same but buy yield tokens instead
+    - Swap 1 ETH for PT-wstETH on Pendle on Ethereum // you can also swap native tokens
+    - Swap 100 USDC for PT-wstETH on Pendle on Ethereum with 1% slippage tolerance // specify slippage
+    - Sell all of my PT cbETH to ETH on Pendle on Base // supports using "buy" and "sell" keywords
 
-### Buy and sell PT & YT tokens
+Please note that:
 
-    - [TODO] Swap 100 USDC for PT-wstETH on Ethereum on Pendle
-    - [TODO] Swap 100 USDC for YT-wstETH on Ethereum on Pendle // same but buy yield tokens instead
-    - [TODO] Swap 100 USDC for PT-wstETH on Ethereum on Pendle with 1% slippage tolerance // specify slippage
-    - [TODO] Buy 100 PT-wstETH on Ethereum on Pendle // will use underlying token to buy (wstETH)
-    - [TODO] Swap USDC to get exactly 1 PT-wstETH on Ethereum on Pendle // obtain exact amount IS THIS EVEN POSSIBLE?
+- If the user does not specify the expiry date, and multiple expiry dates are available for the requested asset, the agent will ask the user to specify which one to use
+- After buying PT and YT tokens, the tool will tell the user when these tokens will expire
+- Pendle does not allow to roll over directly from PT to YT and viceversa, or to swap directly between two regular (i.e. non-Pendle) tokens. Both these limitations can be bypassed by an intermediary swap.
+
+### Convert between Pendle positions (roll over)
+
+    - Convert all of my PT wstETH to PT USDe on Pendle on Ethereum
+    - Roll over all of my PT wstETH to PT USDe on Pendle on Ethereum // same as above
+    - Roll over half of my wstETH LP to an sUSDe LP on Pendle on Ethereum // roll over liquidity
 
 ### Add and remove liquidity
 
-    - Add 1 stETH of liquidity to wstETH market on Ethereum on Pendle // in-kind liquidity add
-    - Add 100 USDC of liquidity to wstETH market on Ethereum on Pendle // zap in from custom token
-    - Zap 100 USDC to wstETH market on Ethereum on Pendle // same as above
-    - Zap 100 USDC to wstETH market on Ethereum on Pendle, with 1% slippage tolerance // zap in with custom slippage
+    - Add 1 stETH of liquidity to wstETH market on Pendle on Ethereum // in-kind liquidity add
+    - Add 100 USDC of liquidity to wstETH market on Pendle on Ethereum // zap in from custom token
+    - Zap 100 USDC to wstETH market on Pendle on Ethereum // same as above
+    - Zap 100 USDC to wstETH market on Pendle on Ethereum, with 1% slippage tolerance // zap in with custom slippage
     - Remove my liquidity from wstETH market on Pendle on Ethereum // in-kind liquidity remove
     - Remove my liquidity from wstETH market to USDC on Pendle on Ethereum // zap out to custom token
     - Zap my liquidity from wstETH market to USDC on Pendle on Ethereum // same as above
@@ -58,8 +64,8 @@ Please note that you will be able to zap in / zap out to all the tokens supporte
 ## Rewards
 
     - [TODO] Show my claimable rewards on Pendle
-    - [TODO] Claim all my rewards across chains on Pendle
-    - [TODO] Claim rewards for the sUSDe Ethereum market on Pendle
+    - [TODO] Claim all of my rewards on Ethereum on Pendle
+    - [TODO] Claim rewards for the sUSDe market on Pendle on Ethereum
 
 ### Resolve Pendle tokens
 

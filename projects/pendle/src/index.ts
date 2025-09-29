@@ -13,6 +13,7 @@ export default {
     tags: [AdapterTag.FARM],
     chains: supportedChains.map(getChainName) as Chain[],
     executableFunctions: [
+        'swapExactTokensIn',
         'addLiquidityToMarketPool',
         'removeLiquidityFromMarketPool',
         'getMyPositionsPortfolio',

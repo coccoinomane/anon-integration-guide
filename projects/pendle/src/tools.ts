@@ -1,9 +1,61 @@
 import { AdapterExport, EVM } from '@heyanon/sdk';
-import { MAX_LIQUIDITY_POOLS_IN_RESULTS, MAX_MARKETS_IN_RESULTS, MAX_POSITIONS_IN_RESULTS, MIN_LIQUIDITY_FOR_MARKET, supportedChains } from './constants';
+import {
+    DEFAULT_SLIPPAGE_TOLERANCE,
+    MAX_LIQUIDITY_POOLS_IN_RESULTS,
+    MAX_MARKETS_IN_RESULTS,
+    MAX_POSITIONS_IN_RESULTS,
+    MIN_LIQUIDITY_FOR_MARKET,
+    supportedChains,
+} from './constants';
 
 const { getChainName } = EVM.utils;
 
 export const tools = [
+    {
+        type: 'function',
+        function: {
+            name: 'swapExactTokensIn',
+            description: [
+                'Swap the given amount of tokenIn with tokenOut. The tokens can be either:',
+                '- Pendle-specific tokens (PT, YT, SY, LP) - use getPendleTokenAddressFromTypeAndName to get their addresses',
+                '- Regular tokens (ETH, USDC, USDT, wstETH, cbETH, etc.) - use the normal token resolver to get their addresses',
+                'Never try to guess token addresses - always use the appropriate function to resolve token symbols to addresses first.',
+                'Please note that when both tokens are Pendle tokens, the swap is commonly called a "roll over".',
+                'IMPORTANT: Pendle does not allow the following actions:',
+                '- to roll over directly from PT to YT and viceversa',
+                '- to swap directly between two regular tokens (in other words: at least one of the tokens must be a Pendle token)',
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    tokenInAddress: {
+                        type: 'string',
+                        description: 'Address of the token to be swapped in (e.g. "0x...")',
+                    },
+                    tokenInAmount: {
+                        type: 'string',
+                        description: 'The exact amount of tokens you want to swap in, expressed as decimals (e.g. 1 ETH rather than 10^18).  This number must be positive.',
+                    },
+                    tokenOutAddress: {
+                        type: 'string',
+                        description: 'Address of the token to be swapped out (e.g. "0x...").',
+                    },
+                    slippageTolerance: {
+                        type: ['number', 'null'],
+                        description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
+                    },
+                },
+                required: ['chainName', 'tokenInAddress', 'tokenInAmount', 'tokenOutAddress', 'slippageTolerance'],
+                additionalProperties: false,
+            },
+        },
+    },
     {
         type: 'function',
         function: {
@@ -198,9 +250,9 @@ export const tools = [
         function: {
             name: 'getPendleTokenAddressFromTypeAndName',
             description: [
-                'Given the type and name of a Pendle token, return the address of that token on the given chain.  Only returns tokens with expiry in the future, unless an expiry date is specified.',
-                'Useful to find the actual addresses of Pendle tokens for the swap tools.',
-                'If this tool fails resolving a Pendle token, try with the `searchMarketsByName` tool, in case the user specified the market name rather than the token name.',
+                'Return the address of Pendle tokens on the given chain. Only returns tokens with expiry in the future, unless an expiry date is specified.',
+                'ONLY use this function when it is clear from context that the user is referring to Pendle-specific tokens: PT (Principal Token), YT (Yield Token), SY (Standardized Yield), or LP (Liquidity Pool) tokens.',
+                'DO NOT use this function for regular tokens like ETH, USDC, USDT, wstETH, cbETH, etc.',
             ].join('\n'),
             strict: true,
             parameters: {
