@@ -32,7 +32,7 @@ export const tools = [
                     },
                     slippageTolerance: {
                         type: ['number', 'null'],
-                        description: 'Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%).  Used only when zapping in.',
+                        description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
                     },
                 },
                 required: ['chainName', 'marketAddress', 'tokenInAddress', 'tokenInAmount', 'slippageTolerance'],
@@ -68,8 +68,7 @@ export const tools = [
                     },
                     slippageTolerance: {
                         type: ['number', 'null'],
-                        description:
-                            "Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%).  This is needed because the user's liquidity will be converted to the output token.",
+                        description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
                     },
                     redeemRewards: {
                         type: ['boolean', 'null'],
