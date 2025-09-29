@@ -30,17 +30,24 @@ Please note that:
 
 ### Buy PT and YT tokens
 
-    - Swap 100 USDC for PT-wstETH on Pendle on Ethereum // swap any token to Pendle tokens
-    - Swap 100 USDC for YT-wstETH on Pendle on Ethereum // same but buy yield tokens instead
-    - Swap 1 ETH for PT-wstETH on Pendle on Ethereum // you can also swap native tokens
-    - Swap 100 USDC for PT-wstETH on Pendle on Ethereum with 1% slippage tolerance // specify slippage
-    - Sell all of my PT cbETH to ETH on Pendle on Base // supports using "buy" and "sell" keywords
+    - Swap 100 USDC for PT wstETH on Pendle on Ethereum // swap any token to Pendle tokens
+    - Swap 100 USDC for YT wstETH on Pendle on Ethereum // same but buy yield tokens instead
+    - Swap 1 ETH for PT wstETH on Pendle on Ethereum // you can also swap native tokens
+    - Swap 100 USDC for PT wstETH on Pendle on Ethereum with 1% slippage tolerance // specify slippage
+    - Swap half of my PT cbETH for ETH on Pendle on Base // supports relative amounts
+    - Sell half of my PT cbETH to ETH on Pendle on Base // same as above
+    - Swap all of my LP USDe to ETH on Pendle on Base // can also add/remove liquidity (same as dedicated add/remove liquidity tools)
 
 Please note that:
 
 - If the user does not specify the expiry date, and multiple expiry dates are available for the requested asset, the agent will ask the user to specify which one to use
 - After buying PT and YT tokens, the tool will tell the user when these tokens will expire
-- Pendle does not allow to roll over directly from PT to YT and viceversa, or to swap directly between two regular (i.e. non-Pendle) tokens. Both these limitations can be bypassed by an intermediary swap.
+- Pendle does not allow to:
+    - swap directly between two regular (i.e. non-Pendle) tokens
+    - roll over directly from PT to YT and viceversa
+    - roll over directly from one market's YT to another market's YT
+    - roll over directly from one market's LP to another market's PT
+- The above limitations can be bypassed by performing an intermediate swap, e.g. you can roll over from PT to YT by first swapping PT to the underlying token (or any regular token), and then swapping the underlying token to YT.
 
 ### Convert between Pendle positions (roll over)
 

@@ -8,8 +8,8 @@ interface Props {
     chainName: string;
     /** type of the token */
     pendleTokenType: `${'PT' | 'YT' | 'SY' | 'LP'}`;
-    /** name of the market e.g. wstETH, USDe */
-    pendleTokenName: string;
+    /** name of the underlying token e.g. wstETH, USDe */
+    underlyingTokenName: string;
     /** short expiry e.g. 26MAR2026  */
     shortExpiry: string | null;
 }
@@ -17,7 +17,7 @@ interface Props {
 const { getChainFromName } = EVM.utils;
 
 export async function getPendleTokenAddressFromTypeAndName(
-    { chainName, pendleTokenType, pendleTokenName, shortExpiry }: Props,
+    { chainName, pendleTokenType, underlyingTokenName, shortExpiry }: Props,
     _options: FunctionOptions,
 ): Promise<FunctionReturn> {
     // Validation
@@ -31,12 +31,12 @@ export async function getPendleTokenAddressFromTypeAndName(
     }
 
     // Make sure the token name is not empty
-    if (!pendleTokenName) {
+    if (!underlyingTokenName) {
         return toResult(`Pendle token name incomplete.  Please specify both the type (e.g. "PT", "YT", "SY", "LP") and the token name (e.g. "wstETH", "USDe")`, true);
     }
 
     // Label to refer to the token
-    const tokenLabelNoExpiry = `${pendleTokenType} ${pendleTokenName}`;
+    const tokenLabelNoExpiry = `${pendleTokenType} ${underlyingTokenName}`;
 
     // Get all Pendle assets from the API.
     //
@@ -65,14 +65,14 @@ export async function getPendleTokenAddressFromTypeAndName(
         // is important to use the name instead of the symbol to reflect
         // Pendle UI, where the name (e.g. PT wstETH (stETH)) is shown
         // rather than the symbol (e.g. PT-stETH). Screenshot > https://d.pr/i/kM2EFC
-        const query = `${pendleTokenType} ${pendleTokenName}`;
+        const query = `${pendleTokenType} ${underlyingTokenName}`;
         byLabel = assets.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()));
     } else {
         // For SY tokens, we do a partial search by SYMBOL, because the token
         // name of SY tokens is chosen to be just the name of the underlying token
         // to avoid confusion on the Pendle UI.  The symbol, however, does include
         // the "SY-" prefix which we can use to disambiguate.
-        const query = `SY-${pendleTokenName}`;
+        const query = `SY-${underlyingTokenName}`;
         byLabel = assets.filter((a) => a.symbol.toLowerCase().includes(query.toLowerCase()));
     }
 
@@ -80,7 +80,7 @@ export async function getPendleTokenAddressFromTypeAndName(
     if (byLabel.length === 0) {
         // Filter markets using the token name provided by the user
         let markets = await pendleClient.getActiveMarkets(chainId);
-        markets = markets.filter((m) => m.name.toLowerCase().includes(pendleTokenName.toLowerCase()));
+        markets = markets.filter((m) => m.name.toLowerCase().includes(underlyingTokenName.toLowerCase()));
         if (markets.length === 0) {
             return toResult(`Could not find the Pendle asset '${tokenLabelNoExpiry}' on ${toTitleCase(chainName)}`);
         }

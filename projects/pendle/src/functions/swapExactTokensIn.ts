@@ -76,6 +76,17 @@ export async function swapExactTokensIn(
         return toResult(`Pendle does not support direct conversion between PT and YT tokens.  Please swap to another token first, or convert to the underlying token.`, true);
     }
 
+    // Conversion between YT tokens of different markets is not supported
+    if (tokenInType === 'YT' && tokenOutType === 'YT' && tokenInInfo.address !== tokenOutInfo.address) {
+        return toResult(
+            `Pendle does not support direct conversion between YT tokens of different markets.  Please swap to another token first, or convert to the underlying token.`,
+            true,
+        );
+    }
+
+    // Whether we will receive a Pendle token with expiry
+    const willReceiveTimeBoundToken = ['PT', 'YT', 'PENDLE_LP'].includes(tokenOutInfo.type);
+
     // Allow the user to zap from "normal" tokens (e.g. ETH or USDC) to
     // Pendle tokens (PT, YT, LP, SY).
     const enableAggregator = true;
@@ -142,7 +153,13 @@ export async function swapExactTokensIn(
 
     // Extract the amount of tokens out
     const tokenOutAmountInWei = BigInt(convertResponse.routes[0].outputs[0].amount);
-    notify(`Will receive approximately ${toHumanReadableAmount(tokenOutAmountInWei, tokenOutInfo.decimals)} ${tokenOutLabel}`);
+    {
+        let message = `Will receive approximately ${toHumanReadableAmount(tokenOutAmountInWei, tokenOutInfo.decimals)} of ${tokenOutLabel}`;
+        if (willReceiveTimeBoundToken) {
+            message += ` expiring on ${tokenOutInfo.expiry?.slice(0, 10)}`;
+        }
+        notify(message);
+    }
 
     // Build transactions
     const transactions: EVM.types.TransactionParams[] = [];
@@ -184,8 +201,8 @@ export async function swapExactTokensIn(
     const swapTxMessage = result.data[result.data.length - 1];
 
     let message = `Successfully swapped ${tokenInAmount} ${tokenInLabel} for approximately ${toHumanReadableAmount(tokenOutAmountInWei, tokenOutInfo.decimals)} ${tokenOutLabel}. ${swapTxMessage.message}`;
-    if (['PT', 'YT', 'PENDLE_LP'].includes(tokenOutInfo.type)) {
-        message += `\nPlease note that you acquired a ${tokenOutInfo.type} token expiring on ${tokenOutInfo.expiry}.`;
+    if (willReceiveTimeBoundToken) {
+        message += `\nPlease note that you acquired a ${tokenOutInfo.type} token expiring on ${tokenOutInfo.expiry?.slice(0, 10)}.`;
     }
 
     return toResult(message);

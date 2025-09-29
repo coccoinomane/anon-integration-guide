@@ -22,8 +22,10 @@ export const tools = [
                 'Never try to guess token addresses - always use the appropriate function to resolve token symbols to addresses first.',
                 'Please note that when both tokens are Pendle tokens, the swap is commonly called a "roll over".',
                 'IMPORTANT: Pendle does not allow the following actions:',
-                '- to roll over directly from PT to YT and viceversa',
                 '- to swap directly between two regular tokens (in other words: at least one of the tokens must be a Pendle token)',
+                '- to roll over directly from PT to YT and viceversa',
+                "- to roll over directly from one market's YT to another market's YT",
+                "- to roll over directly from one market's LP to another market's PT",
             ].join('\n'),
             strict: true,
             parameters: {
@@ -200,7 +202,8 @@ export const tools = [
             name: 'getDataOnMarket',
             description: [
                 'Get info and latest data for the given market on given chain, including yields, TVL, liquidity, trading volume, asset prices, estimated rewards, etc.',
-                'Also include the addresses of PT, YT, SY, LP and underlying tokens for the market.',
+                'Also included in the result are the addresses of the underlying token and of the Pendle tokens (PT, YT, SY, LP) associated with the market.',
+                'IMPORTANT: The market address is not to be confused with the address of the Pendle tokens!  These are different addresses.',
             ].join('\n'),
             strict: true,
             parameters: {
@@ -269,10 +272,10 @@ export const tools = [
                             'Type of the token.  Can be "PT" for principal token, "YT" for yield token, "SY" for standardized yield token or "LP" for liquidity pool token',
                         enum: ['PT', 'YT', 'SY', 'LP'],
                     },
-                    pendleTokenName: {
+                    underlyingTokenName: {
                         type: 'string',
                         description:
-                            'Name of the Pendle token.  Formed by the underlying token optionally followed by the maturation token in parentheses.  These, for example, are all valid names: "wstETH", "sUSDe", "kHYPE","wstETH (stETH)", "sUSDe (USDe)", "kHYPE (Hype)", etc.',
+                            'Name of the underlying token, for example: "wstETH", "sUSDe", "kHYPE". Occasionally has an optional specifier in parentheses, e.g. "wstETH (stETH)".',
                     },
                     shortExpiry: {
                         type: ['string', 'null'],
@@ -290,7 +293,7 @@ export const tools = [
                         ].join('\n'),
                     },
                 },
-                required: ['chainName', 'pendleTokenType', 'pendleTokenName', 'shortExpiry'],
+                required: ['chainName', 'pendleTokenType', 'underlyingTokenName', 'shortExpiry'],
                 additionalProperties: false,
             },
         },
