@@ -5,15 +5,16 @@ import { MAX_POSITIONS_IN_RESULTS } from '../constants';
 import { getChainNameFromChainId } from '../helpers/chains';
 import { fetchTokenInfoFromAddress } from '../helpers/tokens';
 import { to$$$ } from '../helpers/format';
-import { formatUnits } from 'viem';
+import { erc20Abi, formatUnits } from 'viem';
 
 interface Props {}
 
 export async function getMyPositionsPortfolio(_props: Props, { notify, evm: { getAddress, getProvider } }: FunctionOptions): Promise<FunctionReturn> {
     // Get positions
+    const account = await getAddress();
     await notify('Checking portfolio...');
     const pendleClient = new PendleClient();
-    const positionsForAllChains = await pendleClient.getAddressPositions(await getAddress());
+    const positionsForAllChains = await pendleClient.getAddressPositions(account);
     if (!positionsForAllChains || positionsForAllChains.length === 0) {
         return toResult('No positions found in your portfolio');
     }
@@ -46,10 +47,18 @@ export async function getMyPositionsPortfolio(_props: Props, { notify, evm: { ge
                     if (syPosition.balance === '0') {
                         continue;
                     }
-                    const tokenAddress = syPosition.syId.split('-')[1] as `0x${string}`;
+                    // Fetch decimals and symbol of the SY token
                     const provider = getProvider(chain.chainId);
-                    const tokenInfo = await fetchTokenInfoFromAddress(provider, tokenAddress);
-                    subparts.push(`${formatUnits(BigInt(syPosition.balance), tokenInfo.decimals)} ${tokenInfo.symbol}`);
+                    const syTokenAddress = syPosition.syId.split('-')[1] as `0x${string}`;
+                    const syTokenInfo = await fetchTokenInfoFromAddress(provider, syTokenAddress);
+                    // Fetch the token balance on-chain as the SY token balance is not always accurate
+                    const syTokenBalance = await provider.readContract({
+                        address: syTokenInfo.address,
+                        abi: erc20Abi,
+                        functionName: 'balanceOf',
+                        args: [account],
+                    });
+                    subparts.push(`${formatUnits(syTokenBalance, syTokenInfo.decimals)} ${syTokenInfo.symbol}`);
                 }
                 parts.push(` - ${chainName} chain: ${subparts.join(', ')}`);
             }
