@@ -98,25 +98,6 @@ export const tools = [
     {
         type: 'function',
         function: {
-            name: 'getAddressPositionsPortfolio',
-            description: `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the portfolio of the given wallet address, across all chains, together with the total portfolio value (TVL). A position can be a principal token (PT), a yield token (YT) or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
-            strict: true,
-            parameters: {
-                type: 'object',
-                properties: {
-                    address: {
-                        type: 'string',
-                        description: 'Wallet address for which to show the portfolio',
-                    },
-                },
-                required: ['address'],
-                additionalProperties: false,
-            },
-        },
-    },
-    {
-        type: 'function',
-        function: {
             name: 'getMarketsWithHighestApy',
             description: `Show the top ${MAX_MARKETS_IN_RESULTS} markets with the highest yield.  Yield here is measured by the implied APY metric, which corresponds to the fixed annualized yield accrued by 1 PT token for the given market. For each market, show its name, expiry, TVL, and yield. For safety reasons only markets with a minimum liquidity of $${MIN_LIQUIDITY_FOR_MARKET} are shown.`,
             strict: true,
