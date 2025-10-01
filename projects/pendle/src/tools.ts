@@ -17,9 +17,9 @@ export const tools = [
             name: 'swapExactTokensIn',
             description: [
                 'Swap the given amount of tokenIn with tokenOut. The tokens can be either:',
-                '- Pendle-specific tokens (PT, YT, SY, LP) - use getPendleTokenAddressFromTypeAndName to get their addresses',
-                '- Regular tokens (ETH, USDC, USDT, wstETH, cbETH, etc.) - use the normal token resolver to get their addresses',
-                'Never try to guess token addresses - always use the appropriate function to resolve token symbols to addresses first.',
+                '- Pendle-specific tokens (PT, YT, SY, LP): use getPendleTokenAddressFromTypeAndName to get their addresses',
+                '- Regular tokens (ETH, USDC, USDT, wstETH, cbETH, etc.): use the normal token resolver to get their addresses',
+                'Never try to guess token addresses: always use the appropriate function to resolve token symbols to addresses first.',
                 'Please note that when both tokens are Pendle tokens, the swap is commonly called a "roll over".',
                 'IMPORTANT: Pendle does not allow the following actions:',
                 '- to swap directly between two regular tokens (in other words: at least one of the tokens must be a Pendle token)',

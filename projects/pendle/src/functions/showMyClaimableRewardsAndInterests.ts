@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { PendleClient } from '../helpers/client';
 import { flattenAndSortPositions } from '../helpers/positions';
-import { supportedChains } from '../constants';
+import { supportedChains, MAX_POSITIONS_IN_RESULTS } from '../constants';
 import { fetchTokenInfoFromAddress, TokenInfo } from '../helpers/tokens';
 import { formatUnits } from 'viem';
 
@@ -30,14 +30,18 @@ export async function showMyClaimableRewardsAndInterests({ chainName }: Props, {
     // keeping also zero positions (they might have claimable yield)
     const flattenedResult = await flattenAndSortPositions(positionsForAllChains, true, true);
 
-    // Keep only the positions with at least one claimable token on the given chain
+    // Keep only the positions with at least one claimable token on the given chain
     const positionsWithClaimableYield = flattenedResult.positions.filter((p) => p.chainId === chainId && p.claimTokenAmounts && p.claimTokenAmounts.some((c) => c.amount !== '0'));
     if (positionsWithClaimableYield.length === 0) {
         return toResult(`No positions with claimable yield found in your portfolio on chain ${chainName}`);
     }
 
-    // Extract the list of tokens to be claimed
-    const tokensToBeClaimed = positionsWithClaimableYield
+    // Limit the number of positions to display
+    const totalClaimablePositions = positionsWithClaimableYield.length;
+    const firstNPositions = positionsWithClaimableYield.slice(0, MAX_POSITIONS_IN_RESULTS);
+
+    // Extract the list of tokens to be claimed (only from positions we'll display)
+    const tokensToBeClaimed = firstNPositions
         .map((p) => p.claimTokenAmounts.map((c) => c.token))
         .flat()
         .filter(Boolean);
@@ -55,9 +59,12 @@ export async function showMyClaimableRewardsAndInterests({ chainName }: Props, {
 
     // Build the output string
     const parts: string[] = [];
-    parts.push(`Found ${positionsWithClaimableYield.length} positions with claimable rewards/interest on ${chainName} chain:`);
-    for (let i = 0; i < positionsWithClaimableYield.length; i++) {
-        const position = positionsWithClaimableYield[i];
+    parts.push(`Found ${totalClaimablePositions} positions with claimable rewards/interest on ${chainName} chain`);
+    if (firstNPositions.length !== totalClaimablePositions) {
+        parts.push(`Showing only the first ${MAX_POSITIONS_IN_RESULTS} ones:`);
+    }
+    for (let i = 0; i < firstNPositions.length; i++) {
+        const position = firstNPositions[i];
         const subparts = [];
         for (const claimTokenAmount of position.claimTokenAmounts) {
             const tokenInfo = tokenInfoObject[claimTokenAmount.token];

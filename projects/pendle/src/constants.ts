@@ -21,7 +21,7 @@ export const supportedChains = [
 /**
  * Maximum number of positions to show when calling the portfolio tool
  */
-export const MAX_POSITIONS_IN_RESULTS = 50;
+export const MAX_POSITIONS_IN_RESULTS = 30;
 
 /**
  * Maximum number of liquidity pools to show in the search results

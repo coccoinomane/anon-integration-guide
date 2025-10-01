@@ -29,7 +29,7 @@ export async function getMyPositionsPortfolio(_props: Props, { notify, evm: { ge
     // Build and return output string
     const parts = [
         `Found ${flattenedResult.totalPositions} positions in your portfolio, worth a total of ${to$$$(flattenedResult.totalValuation)}`,
-        firstNPositions.length !== flattenedResult.totalPositions ? `Showing the top ${MAX_POSITIONS_IN_RESULTS} positions by value:` : '',
+        firstNPositions.length !== flattenedResult.totalPositions ? `Showing only the first ${MAX_POSITIONS_IN_RESULTS} ones:` : '',
         formattedOutput,
     ];
 
