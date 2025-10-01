@@ -78,8 +78,7 @@ export async function claimRewardsAndInterests({ chainName, positionsAddresses }
     try {
         redeemResponse = await pendleClient.redeemInterestsAndRewards(redeemParams);
     } catch (error: unknown) {
-        // return toResult(`Error redeeming rewards and interests for the following positions: ${positionsAssets.map((a) => a.name).join(', ')}`, true);
-        throw error;
+        return toResult(`Error claiming rewards and interests for the following positions: ${positionsAssets.map((a) => a.name).join(', ')}`, true);
     }
 
     // Check that the TX data is populated
@@ -119,15 +118,15 @@ export async function claimRewardsAndInterests({ chainName, positionsAddresses }
 
     // Send transactions
     if (transactions.length === 1) {
-        await options.notify('Sending redeem transaction...');
+        await options.notify('Sending claim transaction...');
     } else if (transactions.length > 1) {
-        await options.notify('Sending approval & redeem transactions...');
+        await options.notify('Sending approval & claim transactions...');
     }
 
     const result = await sendTransactions({ chainId, account, transactions });
     const redeemTxMessage = result.data[result.data.length - 1];
 
     return toResult(
-        `Successfully redeemed rewards and interests for the following position${positionsAssets.length > 1 ? 's' : ''}: ${positionsAssets.map((a) => a.name).join(', ')}. ${redeemTxMessage.message}`,
+        `Successfully claimed rewards and interests for the following position${positionsAssets.length > 1 ? 's' : ''}: ${positionsAssets.map((a) => a.name).join(', ')}. ${redeemTxMessage.message}`,
     );
 }
