@@ -17,6 +17,7 @@ export default {
         'addLiquidityToMarketPool',
         'removeLiquidityFromMarketPool',
         'getMyPositionsPortfolio',
+        'getMyClaimableRewardsAndInterests',
         'getMarketsWithHighestApy',
         'getLiquidityPoolsWithHighestApy',
         'getDataOnMarket',

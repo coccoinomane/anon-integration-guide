@@ -1,5 +1,5 @@
 import { getChainNameFromChainId } from './chains';
-import { MarketCompactData, ChainPositions, PendleClient, MarketPosition, PendleAsset } from './client';
+import { MarketCompactData, ChainPositions, PendleClient, MarketPosition, PendleAsset, TokenAmountResponse } from './client';
 import { to$$$ } from './format';
 import { formatUnits } from 'viem';
 
@@ -24,7 +24,7 @@ export type FlattenedTokenPosition = {
     /** Active balance (for LP tokens) */
     activeBalance?: string;
     /** Claimable token amounts */
-    claimTokenAmounts?: Array<{ token: string; amount: string }>;
+    claimTokenAmounts: TokenAmountResponse[];
     /** Chain name */
     chainName: string;
     /** Market name */
@@ -105,6 +105,14 @@ export async function flattenAndSortPositions(
                 }
                 // Get asset details
                 const asset = assets.find((a) => a.address === tokenAddress);
+                // claimTokenAmounts has the chainId in the token property,
+                // here we remove it so that claimTokenAmounts.token is a regular
+                // token address. Here we also make sure that claimTokenAmounts
+                // is always defined
+                const claimTokenAmounts = (pos.claimTokenAmounts ?? []).map((c) => ({
+                    token: c.token.split('-')[1] as `0x${string}`,
+                    amount: c.amount,
+                }));
                 // Build flattened position row
                 flattenedPositions.push({
                     chainId: chain.chainId,
@@ -116,7 +124,7 @@ export async function flattenAndSortPositions(
                     valuation: pos.valuation || 0,
                     balance: pos.balance,
                     activeBalance: pos.activeBalance,
-                    claimTokenAmounts: pos.claimTokenAmounts,
+                    claimTokenAmounts,
                     marketName: marketData.name,
                     marketExpiry: marketData.expiry,
                     marketLpNonBoostedApy: marketData.details.aggregatedApy,

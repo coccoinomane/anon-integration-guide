@@ -151,6 +151,26 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'getMyClaimableRewardsAndInterests',
+            description: `Show all of the claimable rewards and interests in the user's positions on the given chain.  This consists of interests and rewards accrued by YT and LP positions.`,
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                },
+                required: ['chainName'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'getMarketsWithHighestApy',
             description: `Show the top ${MAX_MARKETS_IN_RESULTS} markets with the highest yield.  Yield here is measured by the implied APY metric, which corresponds to the fixed annualized yield accrued by 1 PT token for the given market. For each market, show its name, expiry, TVL, and yield. For safety reasons only markets with a minimum liquidity of $${MIN_LIQUIDITY_FOR_MARKET} are shown.`,
             strict: true,
@@ -253,7 +273,7 @@ export const tools = [
         function: {
             name: 'getPendleTokenAddressFromTypeAndName',
             description: [
-                'Return the address of Pendle tokens on the given chain. Only returns tokens with expiry in the future, unless an expiry date is specified.',
+                'Return the address of Pendle tokens on the given chain, based on their type and name. Only returns tokens with expiry in the future, unless an expiry date is specified.',
                 'ONLY use this function when it is clear from context that the user is referring to Pendle-specific tokens: PT (Principal Token), YT (Yield Token), SY (Standardized Yield), or LP (Liquidity Pool) tokens.',
                 'DO NOT use this function for regular tokens like ETH, USDC, USDT, wstETH, cbETH, etc.',
             ].join('\n'),

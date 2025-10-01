@@ -70,7 +70,7 @@ Please note that you will be able to zap in / zap out to all the tokens supporte
 
 ## Rewards
 
-    - [TODO] Show my claimable rewards on Pendle
+    - Show my claimable rewards on Base on Pendle
     - [TODO] Claim all of my rewards on Ethereum on Pendle
     - [TODO] Claim rewards for the sUSDe market on Pendle on Ethereum
 
@@ -119,3 +119,5 @@ Options:
 - [Pendle V2 API docs](https://docs.pendle.finance/Developers/Backend/BackendAndHostedSDK)
 - [Pendle V2 API reference](https://api-v2.pendle.finance/core/docs#/)
 - [Pendle V2 API examples](https://github.com/pendle-finance/pendle-examples-public/tree/main)
+- [Reward claiming via Pendle Router](https://docs.pendle.finance/pendle-v2/Developers/Contracts/PendleRouter/ApiReference/MiscFunctions#redeemdueinterestandrewardsv2)
+- [YT rewards claim TX](https://basescan.org/tx/0x07923989d21a9a181976c81f9cf6f7ad6d633eb260006cf3b6cb237c6ca44013)

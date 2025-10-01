@@ -2,6 +2,7 @@ export * from './swapExactTokensIn';
 export * from './addLiquidityToMarketPool';
 export * from './removeLiquidityFromMarketPool';
 export * from './getMyPositionsPortfolio';
+export * from './getMyClaimableRewardsAndInterests';
 export * from './getMarketsWithHighestApy';
 export * from './getLiquidityPoolsWithHighestApy';
 export * from './getDataOnMarket';

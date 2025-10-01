@@ -293,7 +293,7 @@ export class PendleClient {
     }
 
     /**
-     * Genereate transaction call data for swaps, mint, add liquidity, etc
+     * Generate transaction call data for swaps, mint, add liquidity, etc
      */
     async convert(params: ConvertParams) {
         const response = await this.call<ConvertResponse>(`v2/sdk/${params.chainId}/convert`, params);
