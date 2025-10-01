@@ -298,4 +298,34 @@ export const tools = [
             },
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'getPendleTokenBalance',
+            description: [
+                'Fetch on-chain the balance of the user for the given Pendle token (PT, YT, SY, or LP); warns the user if not a Pendle token.  Use this tool as a faster alternative to the getMyPositionsPortfolio tool when the user is only interested in one or two of his Pendle tokens.  Also useful to determine whether the given token address is indeed a Pendle token.',
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    tokenAddress: {
+                        type: 'string',
+                        description: 'Token address (e.g. "0x...")',
+                    },
+                    account: {
+                        type: ['string', 'null'],
+                        description: "Optionally specify the address to check the balance for. Leave empty (default) to use the user's address.",
+                    },
+                },
+                required: ['chainName', 'tokenAddress', 'account'],
+                additionalProperties: false,
+            },
+        },
+    },
 ] satisfies AdapterExport['tools'];

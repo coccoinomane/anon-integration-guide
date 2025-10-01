@@ -37,7 +37,7 @@ export const tools = [
         type: 'function',
         function: {
             name: 'getTokenBalance',
-            description: 'Fetch on-chain the balance for the given token for the given user address.',
+            description: 'Fetch on-chain the balance of the user for the given token',
             parameters: {
                 type: 'object',
                 properties: {
@@ -50,12 +50,12 @@ export const tools = [
                         type: 'string',
                         description: 'Token address (e.g. "0x...")',
                     },
-                    userAddress: {
+                    account: {
                         type: ['string', 'null'],
-                        description: "User address to check the balance for.  If not provided, the function will use the agent's wallet address.",
+                        description: "Optionally specify the address to check the balance for. Leave empty (default) to use the user's address.",
                     },
                 },
-                required: ['chainName', 'tokenAddress', 'userAddress'],
+                required: ['chainName', 'tokenAddress', 'account'],
                 additionalProperties: false,
             },
         },

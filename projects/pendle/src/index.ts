@@ -22,5 +22,6 @@ export default {
         'getDataOnMarket',
         'searchMarketsByName',
         'getPendleTokenAddressFromTypeAndName',
+        'getPendleTokenBalance',
     ],
 } satisfies AdapterExport;
