@@ -232,6 +232,25 @@ export type GetAssetsResponse = {
     assets: PendleAsset[];
 };
 
+export type RedeemInterestsAndRewardsParams = {
+    chainId: number;
+    receiver: `0x${string}`;
+    /** list of SY addresses to check */
+    sys?: `0x${string}`[];
+    /** list of YT addresses to check */
+    yts?: `0x${string}`[];
+    /** list of market addresses to check (for LP rewards) */
+    markets?: `0x${string}`[];
+};
+
+export type RedeemInterestsAndRewardsResponse = {
+    method: string;
+    contractCallParamsName: string[];
+    contractCallParams: any[];
+    tx: TransactionDto;
+    tokenApprovals: TokenAmountResponse[];
+};
+
 /*
    ____   _   _                  _
   / ___| | | (_)   ___   _ __   | |_
@@ -297,6 +316,30 @@ export class PendleClient {
      */
     async convert(params: ConvertParams) {
         const response = await this.call<ConvertResponse>(`v2/sdk/${params.chainId}/convert`, params);
+
+        return response;
+    }
+
+    /**
+     * Generate transaction call data for claiming rewards and interests from YT and SY tokens
+     */
+    async redeemInterestsAndRewards(params: RedeemInterestsAndRewardsParams) {
+        // Convert addresses to CSV format
+        const formattedParams: Record<string, any> = {
+            chainId: params.chainId,
+            receiver: params.receiver,
+        };
+        if (params.sys) {
+            formattedParams.sys = params.sys.join(',');
+        }
+        if (params.yts) {
+            formattedParams.yts = params.yts.join(',');
+        }
+        if (params.markets) {
+            formattedParams.markets = params.markets.join(',');
+        }
+
+        const response = await this.call<RedeemInterestsAndRewardsResponse>(`/v1/sdk/${params.chainId}/redeem-interests-and-rewards`, formattedParams);
 
         return response;
     }

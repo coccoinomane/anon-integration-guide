@@ -71,8 +71,10 @@ Please note that you will be able to zap in / zap out to all the tokens supporte
 ## Rewards
 
     - Show my claimable rewards on Base on Pendle
-    - [TODO] Claim all of my rewards on Ethereum on Pendle
-    - [TODO] Claim rewards for the sUSDe market on Pendle on Ethereum
+    - Claim all of my available rewards on Ethereum on Pendle
+    - Claim rewards for the sUSDe market on Pendle on Ethereum
+
+Please note that YT interests are accrued as SY tokens. Since SY tokens are not user friendly, we convert them to the underlying token (e.g. wstETH or sUSDe), just like you can do on the UI if you select the "Auto unwrap" option ([screenshot](https://d.pr/i/SSDarx).
 
 ### Pendle tokens
 

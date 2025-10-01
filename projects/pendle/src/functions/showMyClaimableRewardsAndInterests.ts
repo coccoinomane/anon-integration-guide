@@ -11,7 +11,7 @@ interface Props {
 
 const { getChainFromName } = EVM.utils;
 
-export async function getMyClaimableRewardsAndInterests({ chainName }: Props, { notify, evm: { getAddress, getProvider } }: FunctionOptions): Promise<FunctionReturn> {
+export async function showMyClaimableRewardsAndInterests({ chainName }: Props, { notify, evm: { getAddress, getProvider } }: FunctionOptions): Promise<FunctionReturn> {
     // Validation
     const chainId = getChainFromName(chainName as EvmChain);
     if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);
@@ -30,7 +30,7 @@ export async function getMyClaimableRewardsAndInterests({ chainName }: Props, { 
     // keeping also zero positions (they might have claimable yield)
     const flattenedResult = await flattenAndSortPositions(positionsForAllChains, true, true);
 
-    // Keep only the positions with claimable yield on the given chain
+    // Keep only the positions with at least one claimable token on the given chain
     const positionsWithClaimableYield = flattenedResult.positions.filter((p) => p.chainId === chainId && p.claimTokenAmounts && p.claimTokenAmounts.some((c) => c.amount !== '0'));
     if (positionsWithClaimableYield.length === 0) {
         return toResult(`No positions with claimable yield found in your portfolio on chain ${chainName}`);
@@ -55,7 +55,7 @@ export async function getMyClaimableRewardsAndInterests({ chainName }: Props, { 
 
     // Build the output string
     const parts: string[] = [];
-    parts.push(`Found ${positionsWithClaimableYield.length} positions with claimable rewards and/or interests:`);
+    parts.push(`Found ${positionsWithClaimableYield.length} positions with claimable rewards/interest on ${chainName} chain:`);
     for (let i = 0; i < positionsWithClaimableYield.length; i++) {
         const position = positionsWithClaimableYield[i];
         const subparts = [];
@@ -65,7 +65,7 @@ export async function getMyClaimableRewardsAndInterests({ chainName }: Props, { 
             const tokenLabel = tokenInfo.symbol.startsWith('SY') ? assets.find((a) => a.address === claimTokenAmount.token)?.name : tokenInfo.symbol;
             subparts.push(`${formatUnits(BigInt(claimTokenAmount.amount), tokenInfo.decimals)} ${tokenLabel}`);
         }
-        parts.push(`${position.tokenType} position on ${position.marketName} market: can claim ${subparts.join(', ')}`);
+        parts.push(` - ${position.tokenType} position on ${position.marketName} market with address ${position.tokenAddress ?? 'unknown'}: can claim ${subparts.join(', ')}`);
     }
 
     return toResult(parts.join('\n'));

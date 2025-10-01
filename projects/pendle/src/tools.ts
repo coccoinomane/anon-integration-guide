@@ -137,8 +137,41 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'claimRewardsAndInterests',
+            description: [
+                "Claim rewards for the given user's positions on the given chain. The positions are expressed as YT and LP token addresses.",
+                'IMPORTANT: Before using this tool, always check whether the user has claimable rewards or interests using the showMyClaimableRewardsAndInterests tool.',
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    positionsAddresses: {
+                        type: 'array',
+                        description: "Array of YT and LP token addresses to claim rewards and interests for (e.g. ['0x...', '0x...'])",
+                        items: {
+                            type: 'string',
+                        },
+                    },
+                },
+                required: ['chainName', 'positionsAddresses'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'getMyPositionsPortfolio',
-            description: `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio, across all chains, together with the total portfolio value (TVL).  A position can be a principal token (PT), a yield token (YT), standardized yield token (SY), or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
+            description: [
+                `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio, across all chains, together with the total portfolio value (TVL).  A position can be a principal token (PT), a yield token (YT), standardized yield token (SY), or a liquidity pool (LP).  For each position, show its token balance and dollar value.`,
+                `To show claimable rewards and interests, use the showMyClaimableRewardsAndInterests tool instead.`,
+            ].join('\n'),
             strict: true,
             parameters: {
                 type: 'object',
@@ -151,7 +184,7 @@ export const tools = [
     {
         type: 'function',
         function: {
-            name: 'getMyClaimableRewardsAndInterests',
+            name: 'showMyClaimableRewardsAndInterests',
             description: `Show all of the claimable rewards and interests in the user's positions on the given chain.  This consists of interests and rewards accrued by YT and LP positions.`,
             strict: true,
             parameters: {
