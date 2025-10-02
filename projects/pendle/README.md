@@ -68,6 +68,20 @@ Please note that:
 
 Please note that you will be able to zap in / zap out to all the tokens supported by the DEX aggregators used by Pendle (Kyberswap, Okx, etc.), including those not listed in the token dropdown in the Pendle UI.
 
+### Redeem expired positions
+
+    - Redeem my expired PT wstETH position to ETH on Pendle on Ethereum
+    - Redeem my expired wstETH LP position to USDC on Pendle on Ethereum
+    - Redeem 50% of my expired PT cbETH position to ETH on Pendle on Base
+    - Redeem my expired PT USDe position to USDe on Pendle on Ethereum
+
+Please note that:
+
+- The function will automatically check if the market has expired using the `isExpired()` view function on the market contract
+- If the market has not expired yet, you will be instructed to use the swap function instead
+- You can redeem both PT (Principal Token) and LP (Liquidity Pool) positions
+- The redemption can be to any token supported by the DEX aggregators (with automatic zap out)
+
 ## Rewards
 
     - Show my claimable rewards on Base on Pendle

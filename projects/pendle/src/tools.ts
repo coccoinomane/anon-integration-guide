@@ -133,6 +133,44 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'redeemExpiredPtOrLpPosition',
+            description: 'Redeem a matured PT or LP position and zap it to a custom output token.',
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    positionType: {
+                        type: 'string',
+                        description: 'Type of the position. Can be "PT" for principal token or "LP" for liquidity pool token',
+                        enum: ['PT', 'LP'],
+                    },
+                    marketAddress: {
+                        type: 'string',
+                        description: 'Address of the market to which the position belongs (e.g. "0x...")',
+                    },
+                    tokenOutAddress: {
+                        type: 'string',
+                        description: 'Address of the token to be converted to (e.g. "0x...")',
+                    },
+                    redeemPercentage: {
+                        type: ['number', 'null'],
+                        description: 'Percent of the position to redeem, as a number from 0 to 1 (e.g. 0.01 for 1%). If null (default), all of the user position will be redeemed.',
+                    },
+                    slippageTolerance: SLIPPAGE_TOLERANCE_PARAMETER,
+                },
+                required: ['chainName', 'positionType', 'marketAddress', 'tokenOutAddress', 'redeemPercentage', 'slippageTolerance'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'claimRewardsAndInterests',
             description: [
                 "Claim rewards for the given user's positions on the given chain. The positions are expressed as YT and LP token addresses.",

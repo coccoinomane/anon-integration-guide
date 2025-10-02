@@ -251,6 +251,41 @@ export type RedeemInterestsAndRewardsResponse = {
     tokenApprovals: TokenAmountResponse[];
 };
 
+export type ExitPositionsParams = {
+    /** Chain ID number */
+    chainId: number;
+    /** Market address */
+    market: `0x${string}`;
+    /** The address to receive the output of the action */
+    receiver: `0x${string}`;
+    /** Max slippage accepted. A value from 0 to 1 (0.01 is 1%) */
+    slippage: number;
+    /** Output token address (can be token or SY) */
+    tokenOut: `0x${string}`;
+    /** Amount of PT tokens to exit */
+    ptAmount: string;
+    /** Amount of YT tokens to exit */
+    ytAmount: string;
+    /** Amount of LP tokens to exit */
+    lpAmount: string;
+    /** Enable swap aggregator to swap between tokens that cannot be natively converted from/to the underlying asset. Default value: false */
+    enableAggregator?: boolean;
+    /** List of aggregator names to use for the swap. If not provided, all aggregators will be used. List of supported aggregator can be found at: getSupportedAggregators */
+    aggregators?: string;
+};
+
+export type ExitPositionsResponse = {
+    method: string;
+    contractCallParamsName: string[];
+    contractCallParams: any[];
+    tx: TransactionDto;
+    tokenApprovals: TokenAmountResponse[];
+    data: {
+        amountOut: string;
+        priceImpact: number;
+    };
+};
+
 /*
    ____   _   _                  _
   / ___| | | (_)   ___   _ __   | |_
@@ -340,6 +375,17 @@ export class PendleClient {
         }
 
         const response = await this.call<RedeemInterestsAndRewardsResponse>(`/v1/sdk/${params.chainId}/redeem-interests-and-rewards`, formattedParams);
+
+        return response;
+    }
+
+    /**
+     * Generate transaction call data for exiting LP, PT and YT positions in a market to token/SY
+     */
+    async exitPositions(params: ExitPositionsParams) {
+        const { chainId, market, ...queryParams } = params;
+
+        const response = await this.call<ExitPositionsResponse>(`v2/sdk/${chainId}/markets/${market}/exit-positions`, queryParams);
 
         return response;
     }
