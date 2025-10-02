@@ -167,7 +167,7 @@ export async function swapExactTokensIn(
     // Approve tokens if needed
     if (convertResponse.requiredApprovals) {
         if (convertResponse.requiredApprovals.length > 0) {
-            notify(`Will ask for ${convertResponse.requiredApprovals.length} token approval...`);
+            notify(`Will ask for ${convertResponse.requiredApprovals.length} token approval${convertResponse.requiredApprovals.length > 1 ? 's' : ''}...`);
         }
         for (const approval of convertResponse.requiredApprovals) {
             await checkToApprove({

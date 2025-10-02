@@ -10,6 +10,11 @@ import {
 
 const { getChainName } = EVM.utils;
 
+const SLIPPAGE_TOLERANCE_PARAMETER = {
+    type: ['number', 'null'],
+    description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
+};
+
 export const tools = [
     {
         type: 'function',
@@ -48,10 +53,7 @@ export const tools = [
                         type: 'string',
                         description: 'Address of the token to be swapped out (e.g. "0x...").',
                     },
-                    slippageTolerance: {
-                        type: ['number', 'null'],
-                        description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
-                    },
+                    slippageTolerance: SLIPPAGE_TOLERANCE_PARAMETER,
                 },
                 required: ['chainName', 'tokenInAddress', 'tokenInAmount', 'tokenOutAddress', 'slippageTolerance'],
                 additionalProperties: false,
@@ -84,10 +86,7 @@ export const tools = [
                         type: 'string',
                         description: 'Amount of liquidity to add in terms of the input token, expressed as decimals (e.g. 1 ETH rather than 10^18)',
                     },
-                    slippageTolerance: {
-                        type: ['number', 'null'],
-                        description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
-                    },
+                    slippageTolerance: SLIPPAGE_TOLERANCE_PARAMETER,
                 },
                 required: ['chainName', 'marketAddress', 'tokenInAddress', 'tokenInAmount', 'slippageTolerance'],
                 additionalProperties: false,
@@ -120,10 +119,7 @@ export const tools = [
                         type: ['number', 'null'],
                         description: 'Percent of liquidity to remove, as a number from 0 to 1 (e.g. 0.01 for 1%). If null, all of the user liquidity will be removed.',
                     },
-                    slippageTolerance: {
-                        type: ['number', 'null'],
-                        description: `Slippage tolerance, as a number from 0 to 1 (e.g. 0.01 for 1%). If not specified, the default of ${DEFAULT_SLIPPAGE_TOLERANCE} will be used.`,
-                    },
+                    slippageTolerance: SLIPPAGE_TOLERANCE_PARAMETER,
                     redeemRewards: {
                         type: ['boolean', 'null'],
                         description: 'Whether to redeem rewards along with the liquidity. Default is true.',

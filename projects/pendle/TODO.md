@@ -6,6 +6,7 @@
 
 ## Minor
 
+- Harmonize catch block when calling Convert/ExitPositions in liq, swap, claim and redeem tools
 - Should we implement SwapDataExtra in [redeemDueInterestAndRewardsV2](https://docs.pendle.finance/pendle-v2/Developers/Contracts/PendleRouter/ApiReference/MiscFunctions#redeemdueinterestandrewardsv2)?
 - Forbid swapExactTokensOut
 

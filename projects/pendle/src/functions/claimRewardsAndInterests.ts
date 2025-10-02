@@ -93,7 +93,7 @@ export async function claimRewardsAndInterests({ chainName, positionsAddresses }
     // Approve tokens if needed
     if (redeemResponse.tokenApprovals) {
         if (redeemResponse.tokenApprovals.length > 0) {
-            notify(`Will ask for ${redeemResponse.tokenApprovals.length} token approval...`);
+            notify(`Will ask for ${redeemResponse.tokenApprovals.length} token approval${redeemResponse.tokenApprovals.length > 1 ? 's' : ''}...`);
         }
         for (const approval of redeemResponse.tokenApprovals) {
             await checkToApprove({

@@ -99,6 +99,16 @@ export const tokens: Partial<Record<EvmChain, TokenInfo[]>> = {
             decimals: 18,
         },
     ],
+    [Chain.SONIC]: [
+        {
+            type: 'native',
+            symbol: 'S',
+            name: 'Sonic',
+            chainId: EVM.constants.ChainIds[Chain.SONIC],
+            address: EVM.constants.NATIVE_ADDRESS,
+            decimals: 18,
+        },
+    ],
 };
 
 /**
