@@ -4,11 +4,6 @@ import { DEFAULT_PRECISION } from '../constants';
 /**
  * Convert a token amount to a human-readable string, with a
  * specified number of significant digits.
- *
- * Please note that Balancer SDK's TokenAmount.toSignificant
- * yields a different result, as it uses a fixed number of
- * DECIMAL digits, while this function really does significant
- * digits (just like %g formatter in printf).
  */
 export function toHumanReadableAmount(
     amountInWei: bigint,
