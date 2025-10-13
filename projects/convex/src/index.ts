@@ -12,5 +12,5 @@ export default {
         'Convex Finance: maximize yield from Curve Finance, Frax Finance and other DeFi platforms. Stake Curve LP positions & vault tokens for max-boosted rewards. Convert CRV to cvxCRV for liquid staking. Stake or lock CVX to earn platform revenue and voting incentives. Portfolio: view positions, TVL, staked amounts. Markets: find pools with highest APY. Rewards: show and claim rewards.',
     tags: [AdapterTag.FARM],
     chains: supportedChains.map(getChainName) as Chain[],
-    executableFunctions: [],
+    executableFunctions: ['getMyPositionsPortfolio', 'findLpInfo'],
 } satisfies AdapterExport;

@@ -73,3 +73,46 @@ export async function fetchTokenInfoFromAddress(publicClient: PublicClient, addr
         decimals,
     };
 }
+
+/**
+ * Get the token balance for a given account and token address.
+ */
+export async function getTokenBalance(provider: PublicClient, account: `0x${string}`, tokenAddress: `0x${string}`): Promise<bigint> {
+    console.log('getTokenBalance', account, tokenAddress);
+    return await provider.readContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [account],
+    });
+}
+
+/**
+ * Get the token balances for a given account across multiple
+ * tokens.
+ */
+export async function getTokenBalances(provider: PublicClient, account: `0x${string}`, tokenAddresses: `0x${string}`[]): Promise<Record<string, bigint>> {
+    // Multicall to get all token balances at once
+    const balanceContractCalls = tokenAddresses.map((tokenAddress) => ({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: 'balanceOf',
+        args: [account],
+    }));
+
+    const balanceResults = await provider.multicall({
+        contracts: balanceContractCalls,
+        allowFailure: true,
+    });
+
+    // Build result object mapping token addresses to balances
+    const balances: Record<string, bigint> = {};
+    for (let i = 0; i < tokenAddresses.length; i++) {
+        if (balanceResults[i].status !== 'success') {
+            throw new Error(`Could not fetch balance for token ${tokenAddresses[i]}`);
+        }
+        balances[tokenAddresses[i]] = balanceResults[i].result as bigint;
+    }
+
+    return balances;
+}
