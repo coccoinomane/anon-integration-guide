@@ -78,7 +78,6 @@ export async function fetchTokenInfoFromAddress(publicClient: PublicClient, addr
  * Get the token balance for a given account and token address.
  */
 export async function getTokenBalance(provider: PublicClient, account: `0x${string}`, tokenAddress: `0x${string}`): Promise<bigint> {
-    console.log('getTokenBalance', account, tokenAddress);
     return await provider.readContract({
         address: tokenAddress,
         abi: erc20Abi,

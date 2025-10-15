@@ -1,2 +1,2 @@
 export * from './getMyPositionsPortfolio';
-export * from './findLpInfo';
+export * from './findConvexLpTokenInfo';

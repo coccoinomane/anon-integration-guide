@@ -22,6 +22,12 @@ export const CONVEX_BOOSTER_CONTRACT_ADDRESS: `0x${string}` = '0xF403C135812408B
 
 /**
  * The number of decimals for the Convex LP token deposit tokens
+ *
+ * It is guaranteed to be 18 since "we only deal with curve lp
+ * tokens and not the underlying tokens on the amm etc"
+ *
+ * Source: C2tP on Discord
+ * https://discord.com/channels/820795644494610432/864157305566527508/1427239246279868437
  */
 export const CONVEX_LP_TOKEN_DECIMALS = 18;
 

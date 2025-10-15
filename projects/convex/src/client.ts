@@ -82,6 +82,11 @@ type PointsData = {
     multiplier: number;
 };
 
+/**
+ * A pool returned by the Convex API; this is basically info about a Curve
+ * lending vault with the addition of the Convex-specific fields `convexPoolData`
+ * and `pointsData`.
+ */
 export type Pool = {
     /** Alphanumeric ID */
     id: string;
@@ -134,6 +139,10 @@ export type ApyResponse = {
     apys: ApyById;
 };
 
+/**
+ * A map of LP token IDs to their APY data
+ * (here the key is the Curve alphanumeric ID and not the Convex numeric ID)
+ */
 export type ApyById = {
     [key: string]: Apy;
 };
@@ -199,6 +208,10 @@ type LendingVaultAmmBalances = {
     ammBalanceCollateralUsd: number;
 };
 
+/**
+ * A lending vault returned by the Convex API; this is basically info about a Curve lending vault
+ * with the addition of the Convex-specific fields `convexPoolData` and `pointsData`.
+ */
 export type LendingVault = {
     id: string;
     name: string;

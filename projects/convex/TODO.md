@@ -6,6 +6,6 @@
 
 ## Minor
 
-- In `findLpInfo`: Add APY + status + dollar value to user balance
+- In `findConvexLpTokenInfo`: Add APY + if there are claimable rewards (https://d.pr/i/IUQMoB)
 
 ## Future

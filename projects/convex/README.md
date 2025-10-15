@@ -29,6 +29,7 @@ As of Oct 2025:
     - TODO: My total TVL on Convex
     - TODO: Show my LP positions on Convex
     - TODO: How much CRV I have staked on Convex?
+    - Value of my CRV+cvxCRV position on Convex?
     - TODO: Value of my locked CVX position on Convex
 
 ### Yield opportunities

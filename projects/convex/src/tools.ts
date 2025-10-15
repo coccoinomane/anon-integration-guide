@@ -46,9 +46,9 @@ export const tools = [
     {
         type: 'function',
         function: {
-            name: 'findLpInfo',
+            name: 'findConvexLpTokenInfo',
             description:
-                'Find information about a specific LP token on Convex, searching by either its numeric ID or its name, as found on the Convex website. ALWAYS use this function to find the ID of an LP token. The result will include info on any user positions in the LP token.',
+                'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token.',
             strict: true,
             parameters: {
                 type: 'object',
@@ -58,14 +58,14 @@ export const tools = [
                         enum: supportedChains.map(EVM.utils.getChainName),
                         description: 'Chain name',
                     },
-                    lpIdOrName: {
+                    convexLpIdOrName: {
                         type: 'string',
                         description: [
-                            'A string with either the numeric ID or the name of the LP token to get information about.  LP token names on Convex consist of the symbols of the pool coins delimited by the plus sign, for example "ETH+stETH", "USDC+USDT" or "crvUSD+tBTC+wstETH".  The match is case-insensitive.',
+                            'A string with either the numeric ID or the name of the Convex LP token to get information about.  The name of a Convex LP token (as shown on the Convex website) consists of the symbols of the pool coins delimited by the plus sign, for example "ETH+stETH", "USDC+USDT" or "crvUSD+tBTC+wstETH".  The match is case-insensitive.',
                         ].join('\n'),
                     },
                 },
-                required: ['chainName', 'lpIdOrName'],
+                required: ['chainName', 'convexLpIdOrName'],
                 additionalProperties: false,
             },
         },
