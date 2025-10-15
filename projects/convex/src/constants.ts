@@ -29,7 +29,7 @@ export const CONVEX_BOOSTER_CONTRACT_ADDRESS: `0x${string}` = '0xF403C135812408B
  * Source: C2tP on Discord
  * https://discord.com/channels/820795644494610432/864157305566527508/1427239246279868437
  */
-export const CONVEX_LP_TOKEN_DECIMALS = 18;
+export const CONVEX_TOKEN_DECIMALS = 18;
 
 /**
  * Maximum number of positions to show when calling the portfolio tool

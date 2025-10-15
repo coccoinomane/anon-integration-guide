@@ -70,4 +70,31 @@ export const tools = [
             },
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'findConvexLvInfo',
+            description:
+                'Find information about a specific Convex Lending Vault (LV) token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LV token. The result will include info on any user positions in the Convex LV token.',
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(EVM.utils.getChainName),
+                        description: 'Chain name',
+                    },
+                    convexLvIdOrName: {
+                        type: 'string',
+                        description: [
+                            'A string with either the numeric ID or the name of the Convex Lending Vault (LV) token to get information about.  The name of a Convex LV token (as shown on the Convex website) consists of the symbol of the token used as collateral, for example "sUSDe", "WETH" or "WBTC".  The match is case-insensitive.',
+                        ].join('\n'),
+                    },
+                },
+                required: ['chainName', 'convexLvIdOrName'],
+                additionalProperties: false,
+            },
+        },
+    },
 ] satisfies AdapterExport['tools'];

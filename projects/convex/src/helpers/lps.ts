@@ -1,13 +1,25 @@
+/**
+ * This file contains utility functions to work with Convex LP tokens.
+ *
+ * A Convex LP token is a deposit/receipt token that the user receives
+ * in exchange for depositing Curve liquidity (in the form of a Curve
+ * LP token) on Convex.
+ *
+ * After obtaining a Convex LP token, it can then be further staked
+ * on Convex to earn boosted CRV and (sometimes) CVX rewards; this
+ * is the whole point of it.
+ */
+
 import { erc20Abi, formatUnits, PublicClient } from 'viem';
 import { boosterAbi } from '../abis';
-import { Apy, Pool } from '../client';
-import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_LP_TOKEN_DECIMALS } from '../constants';
+import { Apy, LendingVault, Pool } from '../client';
+import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_TOKEN_DECIMALS } from '../constants';
 import { to$$$ } from './format';
 
 /**
- * How much does a user owns of a Convex LP token, both staked and unstaked
+ * How much does a user owns of a Convex LP or LV token, both staked and unstaked
  */
-export type ConvexLpTokenBalances = {
+export type ConvexTokenBalances = {
     staked: bigint; // Amount staked in reward pool earning rewards
     usdStaked?: number; // USD value of the staked amount
     unstaked: bigint; // Amount of deposit tokens in wallet (not staked)
@@ -29,21 +41,24 @@ export type PoolInfo = {
 };
 
 /**
- * All relevant info about a Convex LP token, including the API-returned
+ * All relevant info about a Convex LP or LV token, including the API-returned
  * data, derived data, and the user's balances
  */
-export type EnrichedConvexLpToken = {
+export type EnrichedConvexToken = {
+    /** The type of token, either a Convex LP Token or Convex LV Token */
+    type: 'lp' | 'lv';
     id: number;
     isBrokenOrShutdown: boolean;
     uiName: string;
     uiApy?: number;
     TVL: number | null;
     usdPrice: number;
-    userBalances?: ConvexLpTokenBalances;
-    curveLpId: string;
-    curveLpName: string;
-    curveLpTokenAddress: `0x${string}`;
-    apiPool: Pool;
+    userBalances?: ConvexTokenBalances;
+    curveId: string;
+    curveName: string;
+    curveTokenAddress: `0x${string}`;
+    /** The API-returned object, either a Pool or a LendingVault */
+    apiObject: Pool | LendingVault;
     apiApy?: Apy;
 };
 
@@ -53,18 +68,19 @@ export type EnrichedConvexLpToken = {
  *
  * Optionally, pass the user account address to fetch the user balances.
  */
-export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexLpToken> {
+export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
     // Compute base data
-    const result: EnrichedConvexLpToken = {
+    const result: EnrichedConvexToken = {
+        type: 'lp',
         id: pool.convexPoolData.id,
         isBrokenOrShutdown: pool.isBroken || pool.convexPoolData.shutdown,
         uiName: getConvexLpTokenUiName(pool),
         TVL: pool.convexPoolData.usdTotal ?? null,
-        usdPrice: await calculateConvexLpTokenUsdPrice(pool, provider),
-        curveLpId: pool.id,
-        curveLpName: pool.name,
-        curveLpTokenAddress: pool.lpTokenAddress as `0x${string}`,
-        apiPool: pool,
+        usdPrice: await calculateConvexTokenUsdPrice(pool, provider),
+        curveId: pool.id,
+        curveName: pool.name,
+        curveTokenAddress: pool.lpTokenAddress as `0x${string}`,
+        apiObject: pool,
     };
     // Compute APY data if we have it
     if (apy) {
@@ -73,8 +89,9 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
     }
     // Compute full user balances if we have an account
     if (account) {
-        const d = CONVEX_LP_TOKEN_DECIMALS;
-        result.userBalances = await fetchConvexLpTokenBalances(provider, pool.convexPoolData.id, account);
+        const d = CONVEX_TOKEN_DECIMALS;
+        result.userBalances = await fetchConvexTokenBalances(provider, pool.convexPoolData.id, account);
+        result.userBalances = await fetchConvexTokenBalances(provider, pool.convexPoolData.id, account);
         result.userBalances.usdStaked = Number(formatUnits(result.userBalances.staked, d)) * result.usdPrice;
         result.userBalances.usdUnstaked = Number(formatUnits(result.userBalances.unstaked, d)) * result.usdPrice;
         result.userBalances.usdTotal = Number(result.userBalances.usdStaked + result.userBalances.usdUnstaked);
@@ -85,14 +102,14 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
 /**
  * Calculate the USD price of a Convex LP token by dividing the TVL by the total supply
  */
-export async function calculateConvexLpTokenUsdPrice(pool: Pool, provider: PublicClient): Promise<number> {
+export async function calculateConvexTokenUsdPrice(obj: Pool | LendingVault, provider: PublicClient): Promise<number> {
     const totalSupply = await provider.readContract({
-        address: pool.convexPoolData.token,
+        address: obj.convexPoolData.token,
         abi: erc20Abi,
         functionName: 'totalSupply',
     });
-    const d = CONVEX_LP_TOKEN_DECIMALS;
-    return pool.convexPoolData.usdTotal ? pool.convexPoolData.usdTotal / Number(formatUnits(totalSupply, d)) : NaN;
+    const d = CONVEX_TOKEN_DECIMALS;
+    return obj.convexPoolData.usdTotal ? obj.convexPoolData.usdTotal / Number(formatUnits(totalSupply, d)) : NaN;
 }
 
 /**
@@ -105,10 +122,10 @@ export function getConvexLpTokenUiName(pool: Pool): string {
 }
 
 /**
- * Gets from the blockchain the staked and unstaked LP token amounts
- * for a user in a specific Convex pool
+ * Gets from the blockchain the staked and unstaked Convex LP or
+ * LVtoken amounts for a user in a specific Convex pool
  */
-export async function fetchConvexLpTokenBalances(provider: PublicClient, poolId: number, account: `0x${string}`): Promise<ConvexLpTokenBalances> {
+export async function fetchConvexTokenBalances(provider: PublicClient, poolId: number, account: `0x${string}`): Promise<ConvexTokenBalances> {
     // Get pool info first
     const poolInfo = await fetchPoolInfo(provider, poolId);
 
@@ -167,15 +184,13 @@ export async function fetchPoolInfo(provider: PublicClient, poolId: number): Pro
 }
 
 /**
- * Return a multiple line string with all data for the given Convex
- * LP pool; optionally, pass a string with the user token balance to show
- * it as well.
+ * Return a multiple line string with all data for the given Convex LP token
  */
-export function formatConvexLpToken(convexLpToken: EnrichedConvexLpToken): string {
+export function formatConvexLpToken(convexLpToken: EnrichedConvexToken): string {
     let parts: string[] = [];
     parts.push(`Info on Convex LP token ${convexLpToken.uiName}:`);
     if (convexLpToken.userBalances) {
-        const d = CONVEX_LP_TOKEN_DECIMALS;
+        const d = CONVEX_TOKEN_DECIMALS;
         const subParts: string[] = [];
         subParts.push(` - Your balance: ${formatUnits(convexLpToken.userBalances.total, d)} LP`);
         if (convexLpToken.userBalances.usdTotal) {
@@ -192,7 +207,7 @@ export function formatConvexLpToken(convexLpToken: EnrichedConvexLpToken): strin
     }
     parts.push(` - Total TVL: ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
     parts.push(` - Convex ID: ${convexLpToken.id}`);
-    parts.push(` - Underlying LP on Curve: "${convexLpToken.curveLpName}" with address ${convexLpToken.curveLpTokenAddress}`);
+    parts.push(` - Underlying LP on Curve: "${convexLpToken.curveName}" with address ${convexLpToken.curveTokenAddress}`);
     if (convexLpToken.isBrokenOrShutdown) {
         parts.push(` - ⚠️ Curve pool is either broken or shutdown!`);
     }
@@ -203,14 +218,14 @@ export function formatConvexLpToken(convexLpToken: EnrichedConvexLpToken): strin
  * Return a single line string with the most important data for the given
  * Convex LP pool.
  */
-export function formatConvexLpTokenShort(convexLpToken: EnrichedConvexLpToken): string {
+export function formatConvexLpTokenShort(convexLpToken: EnrichedConvexToken): string {
     let parts: string[] = [];
     parts.push(`Convex LP token ${convexLpToken.uiName}`);
     parts.push(`with ID ${convexLpToken.id},`);
-    parts.push(`underlying LP on Curve "${convexLpToken.curveLpName}",`);
+    parts.push(`underlying LP on Curve "${convexLpToken.curveName}",`);
     parts.push(`TVL ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
     if (convexLpToken.userBalances) {
-        parts.push(`- you own ${formatUnits(convexLpToken.userBalances.total, CONVEX_LP_TOKEN_DECIMALS)}`);
+        parts.push(`- you own ${formatUnits(convexLpToken.userBalances.total, CONVEX_TOKEN_DECIMALS)}`);
         if (convexLpToken.userBalances.usdTotal) {
             parts.push(`(${to$$$(convexLpToken.userBalances.usdTotal)})`);
         }
