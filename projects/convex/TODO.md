@@ -6,6 +6,7 @@
 
 ## Minor
 
-- In `findConvexLpTokenInfo`: Add APY + if there are claimable rewards (https://d.pr/i/IUQMoB)
+- In `findConvexLpInfo`: Add APY + if there are claimable rewards (https://d.pr/i/IUQMoB)
+- As of Oct 13 2025, cvxCRV is heavily depegged (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU)), should we disable the convert function?
 
 ## Future

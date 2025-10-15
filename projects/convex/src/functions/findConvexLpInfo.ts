@@ -8,7 +8,7 @@ interface Props {
     convexLpIdOrName: string;
 }
 
-export async function findConvexLpTokenInfo({ chainName, convexLpIdOrName }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
+export async function findConvexLpInfo({ chainName, convexLpIdOrName }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
     // Validation
     const chainId = EVM.utils.getChainFromName(chainName as EvmChain);
     if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);

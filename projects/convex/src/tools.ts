@@ -46,7 +46,7 @@ export const tools = [
     {
         type: 'function',
         function: {
-            name: 'findConvexLpTokenInfo',
+            name: 'findConvexLpInfo',
             description:
                 'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token.',
             strict: true,
