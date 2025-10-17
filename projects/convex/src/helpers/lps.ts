@@ -14,6 +14,7 @@ import { erc20Abi, formatUnits, PublicClient } from 'viem';
 import { Apy, LendingVault, Pool } from '../client';
 import { CONVEX_TOKEN_DECIMALS } from '../constants';
 import { to$$$ } from './format';
+import { calculateConvexLvTokenUsdPrice } from './vaults';
 
 /**
  * How much does a user owns of a Convex LP or LV token, both staked and unstaked
@@ -90,11 +91,7 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
     }
     // Compute full user balances if we have an account
     if (account) {
-        const d = CONVEX_TOKEN_DECIMALS;
-        result.userBalances = await fetchConvexTokenBalances(provider, pool, account);
-        result.userBalances.usdStaked = Number(formatUnits(result.userBalances.staked, d)) * result.usdPrice;
-        result.userBalances.usdUnstaked = Number(formatUnits(result.userBalances.unstaked, d)) * result.usdPrice;
-        result.userBalances.usdTotal = Number(result.userBalances.usdStaked + result.userBalances.usdUnstaked);
+        result.userBalances = await fetchConvexTokenBalances(provider, pool, account, true);
     }
     return result;
 }
@@ -111,6 +108,34 @@ export function calculateConvexLpTokenUsdPrice(pool: Pool): number {
 }
 
 /**
+ * Type guard to check if an object is a Pool
+ * Discriminates based on the presence of the lpTokenAddress property
+ */
+export function isPool(poolOrVault: Pool | LendingVault): poolOrVault is Pool {
+    return 'lpTokenAddress' in poolOrVault;
+}
+
+/**
+ * Type guard to check if an object is a LendingVault
+ * Discriminates based on the presence of the borrowed property
+ */
+export function isLendingVault(poolOrVault: Pool | LendingVault): poolOrVault is LendingVault {
+    return 'borrowed' in poolOrVault;
+}
+
+/**
+ * Calculate the USD price of a Convex token (LP or LV)
+ * This is a unified helper that works for both Pool and LendingVault types
+ */
+export function calculateTokenUsdPrice(poolOrVault: Pool | LendingVault): number {
+    if (isLendingVault(poolOrVault)) {
+        return calculateConvexLvTokenUsdPrice(poolOrVault);
+    } else {
+        return calculateConvexLpTokenUsdPrice(poolOrVault);
+    }
+}
+
+/**
  * Name shown on the website UI for the given LP token.
  * This is given by the pool tokens symbols joined by a plus sign
  * e.g. https://d.pr/i/WoXJrD
@@ -123,7 +148,12 @@ export function getConvexLpTokenUiName(pool: Pool): string {
  * Gets from the blockchain the staked and unstaked Convex LP or
  * LV token amounts for a user in a specific Convex pool
  */
-export async function fetchConvexTokenBalances(provider: PublicClient, poolOrVault: Pool | LendingVault, account: `0x${string}`): Promise<ConvexTokenBalances> {
+export async function fetchConvexTokenBalances(
+    provider: PublicClient,
+    poolOrVault: Pool | LendingVault,
+    account: `0x${string}`,
+    getUsdValues: boolean = true,
+): Promise<ConvexTokenBalances> {
     // Get both balances in parallel using multicall for efficiency
     const [stakedBalance, unstakedBalance] = await provider.multicall({
         contracts: [
@@ -150,11 +180,97 @@ export async function fetchConvexTokenBalances(provider: PublicClient, poolOrVau
     const unstaked = unstakedBalance.result;
     const total = staked + unstaked;
 
-    return {
+    const balances: ConvexTokenBalances = {
         staked,
         unstaked,
         total,
     };
+
+    // Calculate USD values if requested
+    if (getUsdValues) {
+        const usdPrice = calculateTokenUsdPrice(poolOrVault);
+        const d = CONVEX_TOKEN_DECIMALS;
+        balances.usdStaked = Number(formatUnits(staked, d)) * usdPrice;
+        balances.usdUnstaked = Number(formatUnits(unstaked, d)) * usdPrice;
+        balances.usdTotal = balances.usdStaked + balances.usdUnstaked;
+    }
+
+    return balances;
+}
+
+/**
+ * Fetches balances for multiple pools and vaults in a single efficient multicall.
+ * Returns a Map indexed by the Convex pool ID for easy lookup.
+ *
+ * This is much more efficient than calling fetchConvexTokenBalances in a loop
+ * when you need balances for many pools/vaults at once.
+ */
+export async function fetchMultipleConvexTokenBalances(
+    provider: PublicClient,
+    poolsAndVaults: (Pool | LendingVault)[],
+    account: `0x${string}`,
+    getUsdValues: boolean = true,
+): Promise<Map<number, ConvexTokenBalances>> {
+    if (poolsAndVaults.length === 0) {
+        return new Map();
+    }
+
+    // Build contracts array: for each pool/vault we need 2 calls (staked + unstaked)
+    const contracts = poolsAndVaults.flatMap((poolOrVault) => [
+        {
+            address: poolOrVault.convexPoolData.crvRewards,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [account],
+        } as const,
+        {
+            address: poolOrVault.convexPoolData.token,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [account],
+        } as const,
+    ]);
+
+    // Execute all balance checks in a single multicall
+    const results = await provider.multicall({ contracts });
+
+    // Parse results and build the map
+    const balancesMap = new Map<number, ConvexTokenBalances>();
+
+    for (let i = 0; i < poolsAndVaults.length; i++) {
+        const poolOrVault = poolsAndVaults[i];
+        const stakedResult = results[i * 2];
+        const unstakedResult = results[i * 2 + 1];
+
+        // Skip this pool/vault if either call failed
+        if (stakedResult.status !== 'success' || unstakedResult.status !== 'success') {
+            console.warn(`Failed to fetch balances for Convex pool ID ${poolOrVault.convexPoolData.id}`);
+            continue;
+        }
+
+        const staked = stakedResult.result;
+        const unstaked = unstakedResult.result;
+        const total = staked + unstaked;
+
+        const balances: ConvexTokenBalances = {
+            staked,
+            unstaked,
+            total,
+        };
+
+        // Calculate USD values if requested
+        if (getUsdValues) {
+            const usdPrice = calculateTokenUsdPrice(poolOrVault);
+            const d = CONVEX_TOKEN_DECIMALS;
+            balances.usdStaked = Number(formatUnits(staked, d)) * usdPrice;
+            balances.usdUnstaked = Number(formatUnits(unstaked, d)) * usdPrice;
+            balances.usdTotal = balances.usdStaked + balances.usdUnstaked;
+        }
+
+        balancesMap.set(poolOrVault.convexPoolData.id, balances);
+    }
+
+    return balancesMap;
 }
 
 /**

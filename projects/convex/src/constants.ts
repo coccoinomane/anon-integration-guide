@@ -37,6 +37,13 @@ export const CONVEX_TOKEN_DECIMALS = 18;
 export const MAX_POSITIONS_IN_RESULTS = 30;
 
 /**
+ * Minimum TVL in dollars for a Convex pool or vault to be shown
+ * in the list tool.  For the portfolio tool, this acts as a default
+ * value for the minTvl argument.
+ */
+export const MIN_TVL = 100_000;
+
+/**
  * Types of positions a user can hold on Convex Finance
  */
 export const CONVEX_POSITION_TYPES = ['CRV_CVX', 'CVX', 'LIQUIDITY_POOL', 'LENDING_VAULT'] as const;

@@ -23,14 +23,8 @@
 import { formatUnits, PublicClient } from 'viem';
 import { Apy, LendingVault } from '../client';
 import { CONVEX_TOKEN_DECIMALS } from '../constants';
-import { ConvexTokenBalances, EnrichedConvexToken, fetchConvexTokenBalances } from './lps';
+import { EnrichedConvexToken, fetchConvexTokenBalances } from './lps';
 import { to$$$ } from './format';
-
-/**
- * How much does a user owns of a Convex LV token, both staked and unstaked
- * (same structure as the LP counterpart)
- */
-export type ConvexLvTokenBalances = ConvexTokenBalances;
 
 /**
  * Return all relevant info about a Convex LV token, given
@@ -59,11 +53,7 @@ export async function enrichConvexLvToken(vault: LendingVault, provider: PublicC
     }
     // Compute full user balances if we have an account
     if (account) {
-        const d = CONVEX_TOKEN_DECIMALS;
-        result.userBalances = await fetchConvexTokenBalances(provider, vault, account);
-        result.userBalances.usdStaked = Number(formatUnits(result.userBalances.staked, d)) * result.usdPrice;
-        result.userBalances.usdUnstaked = Number(formatUnits(result.userBalances.unstaked, d)) * result.usdPrice;
-        result.userBalances.usdTotal = Number(result.userBalances.usdStaked + result.userBalances.usdUnstaked);
+        result.userBalances = await fetchConvexTokenBalances(provider, vault, account, true);
     }
     return result;
 }
