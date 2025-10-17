@@ -12,7 +12,7 @@ export const tools = [
             description: [
                 [
                     `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio on the given chain, including Convex Liquidity Pools (LP) tokens and Convex Lending Vaults (LV) tokens;`,
-                    `For each position, shows the token balance and dollar value.`,
+                    `For each position, shows the token balance, dollar value and yield (APR).`,
                     `The total portfolio value (TVL) across all positions is also shown.`,
                     `Optionally, select which types of positions to show using the 'positionTypes' parameter; default is all types (LP and LV).`,
                 ].join('\n'),

@@ -21,6 +21,24 @@ export const supportedChains = [ChainIds[Chain.ETHEREUM], ChainIds[Chain.ARBITRU
 export const CONVEX_BOOSTER_CONTRACT_ADDRESS: `0x${string}` = '0xF403C135812408BFbE8713b5A23a04b3D48AAE31';
 
 /**
+ * Address of the Convex PoolUtilities contract
+ * TODO: Polygon & Arbitrum addresses?
+ */
+export const POOL_UTILITIES_CONTRACT_ADDRESS: `0x${string}` = '0x5Fba69a794F395184b5760DAf1134028608e5Cd1';
+
+/**
+ * Address of the Convex CVX ERC20 token
+ * TODO: Polygon & Arbitrum addresses?
+ */
+export const CVX_TOKEN_ADDRESS: `0x${string}` = '0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b';
+
+/**
+ * Address of the Curve CRV ERC20 token
+ * TODO: Polygon & Arbitrum addresses?
+ */
+export const CRV_TOKEN_ADDRESS: `0x${string}` = '0xD533a949740bb3306d119CC777fa900bA034cd52';
+
+/**
  * The number of decimals for the Convex LP token deposit tokens
  *
  * It is guaranteed to be 18 since "we only deal with curve lp

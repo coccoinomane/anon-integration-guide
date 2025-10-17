@@ -6,9 +6,12 @@
 
 ## Minor
 
+- Get CVX price from pools (just use usdPrice of the first coin with address0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b)
 - In `findConvexLpInfo` and `findConvexLvInfo`:
-    - Add APY + if there are claimable rewards (https://d.pr/i/IUQMoB)
-    - Show whether token is broken in short format summary
+    - Add APR also to LV output
+    - Add if there are claimable rewards (https://d.pr/i/IUQMoB)
+- Improve `getMyPositionsPortfolio` output
 - As of Oct 13 2025, cvxCRV is heavily depegged (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU)), should we disable the convert function?
+- Drop Polygon and Arbitrum support (less than 1% of TVL combined)
 
 ## Future
