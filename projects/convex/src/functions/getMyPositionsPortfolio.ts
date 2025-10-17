@@ -35,9 +35,8 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     const provider = getProvider(chainId);
     const account = await getAddress();
 
-    // Fetch Convex APYs across pools and vaults
+    // Create Convex API client
     const client = new ConvexCurveClient();
-    const apys = await client.apys(chainName);
 
     // Select the pools and vaults that need to be processed,
     // filtering out those with low TVL or those which are either
@@ -65,6 +64,9 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     if (poolsAndVaultsWithBalance.length === 0) {
         return toResult('You have no active positions on Convex for the selected criteria.');
     }
+
+    // Fetch Convex APYs across pools and vaults
+    const apys = await client.apys(chainName);
 
     // Build enriched tokens for all positions with balances
     const enrichedTokens: EnrichedConvexToken[] = [];

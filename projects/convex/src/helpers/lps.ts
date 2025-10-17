@@ -12,7 +12,7 @@
 
 import { erc20Abi, formatUnits, PublicClient } from 'viem';
 import { Apy, LendingVault, Pool } from '../client';
-import { CONVEX_TOKEN_DECIMALS } from '../constants';
+import { CONVEX_TOKEN_DECIMALS, MULTICALL_BATCH_SIZE } from '../constants';
 import { to$$$ } from './format';
 import { calculateConvexLvTokenUsdPrice } from './vaults';
 
@@ -199,11 +199,13 @@ export async function fetchConvexTokenBalances(
 }
 
 /**
- * Fetches balances for multiple pools and vaults in a single efficient multicall.
+ * Fetches balances for multiple pools and vaults in batched multicalls.
  * Returns a Map indexed by the Convex pool ID for easy lookup.
  *
  * This is much more efficient than calling fetchConvexTokenBalances in a loop
  * when you need balances for many pools/vaults at once.
+ *
+ * The function automatically batches requests to avoid RPC provider limits.
  */
 export async function fetchMultipleConvexTokenBalances(
     provider: PublicClient,
@@ -231,8 +233,17 @@ export async function fetchMultipleConvexTokenBalances(
         } as const,
     ]);
 
-    // Execute all balance checks in a single multicall
-    const results = await provider.multicall({ contracts });
+    // Split contracts into batches to avoid RPC provider limits
+    const batches: (typeof contracts)[] = [];
+    for (let i = 0; i < contracts.length; i += MULTICALL_BATCH_SIZE) {
+        batches.push(contracts.slice(i, i + MULTICALL_BATCH_SIZE));
+    }
+
+    // Execute all batches in parallel
+    const batchResults = await Promise.all(batches.map((batch) => provider.multicall({ contracts: batch })));
+
+    // Flatten all batch results into a single array
+    const results = batchResults.flat();
 
     // Parse results and build the map
     const balancesMap = new Map<number, ConvexTokenBalances>();

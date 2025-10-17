@@ -58,3 +58,12 @@ export const HEYANON_NATIVE_TOKEN_ADDRESS = EVM.constants.NATIVE_ADDRESS;
  * expressed as a number of significant digits.
  */
 export const DEFAULT_PRECISION = 6;
+
+/**
+ * Maximum number of contract calls to include in a single multicall batch.
+ * This helps avoid issues with RPC providers that have limits on multicall size.
+ *
+ * Note: Each pool/vault requires 2 calls (staked + unstaked balance),
+ * so this batch size will handle 20 pools/vaults per batch.
+ */
+export const MULTICALL_BATCH_SIZE = 40;
