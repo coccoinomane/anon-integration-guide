@@ -53,7 +53,7 @@ export async function findConvexLvInfo({ chainName, convexLvIdOrName }: Props, {
         }
     }
 
-    // Enrich the pool with the APY and user balances
+    // Enrich the vault with the APY and user balances
     const apys = await client.apys(chainName);
     const enrichedVault = await enrichConvexLvToken(vault, provider, apys[vault.id], account);
 

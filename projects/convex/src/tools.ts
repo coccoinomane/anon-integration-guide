@@ -1,5 +1,6 @@
 import { AdapterExport, EVM } from '@heyanon/sdk';
-import { CONVEX_POSITION_TYPES, MAX_POSITIONS_IN_RESULTS, supportedChains } from './constants';
+import { MAX_POSITIONS_IN_RESULTS, MIN_TVL, supportedChains } from './constants';
+import { to$$$ } from './helpers/format';
 
 const { getChainName } = EVM.utils;
 
@@ -88,7 +89,7 @@ export const tools = [
                     convexLvIdOrName: {
                         type: 'string',
                         description: [
-                            'A string with either the numeric ID or the name of the Convex Lending Vault (LV) token to get information about.  The name of a Convex LV token (as shown on the Convex website) consists of the symbol of the token used as collateral, for example "sUSDe", "WETH" or "WBTC".  The match is case-insensitive.',
+                            'A string with either the numeric ID or the name of the Convex Lending Vault (LV) token to get information about.  The name of a Convex LV token (as shown on the Convex website) is just the symbol of the token used as collateral, for example "sUSDe", "WETH" or "WBTC".  The match is case-insensitive.',
                         ].join('\n'),
                     },
                 },

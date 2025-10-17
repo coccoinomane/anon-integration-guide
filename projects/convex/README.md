@@ -27,7 +27,8 @@ More information on Convex Finance can be found on their own academy page: https
     - TODO: My total TVL on Convex
     - TODO: Show my LP positions on Convex
     - TODO: How much CRV I have staked on Convex?
-    - Value of my CRV+cvxCRV position on Convex?
+    - Value of my CRV+cvxCRV position on Ethereum on Convex?
+    - Value of my WETH lending vault on Ethereum on Convex?
     - TODO: Value of my locked CVX position on Convex
 
 ### Yield opportunities
@@ -35,6 +36,7 @@ More information on Convex Finance can be found on their own academy page: https
     - TODO: Surface best opportunities on Convex based on my portfolio
     - TODO: Best yields on Convex?
     - Show me the details of the Convex FRAX+USDe pool on Ethereum
+    - Show me the details of the eUSD lending vault on Ethereum
     - TODO: Give me APY of Convex CRV staking
     - TODO: Show Convex pools with highest APY on Ethereum
 

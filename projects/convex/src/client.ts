@@ -67,11 +67,11 @@ type GaugeStatus = {
 type ConvexPoolData = {
     id: number;
     token: `0x${string}`;
-    gauge: string;
-    crvRewards?: string;
-    stash?: string;
+    gauge: `0x${string}`;
+    crvRewards: `0x${string}`;
+    stash: `0x${string}`;
     shutdown: boolean;
-    usdTotal?: number;
+    usdTotal: number;
     rewards?: string;
 };
 

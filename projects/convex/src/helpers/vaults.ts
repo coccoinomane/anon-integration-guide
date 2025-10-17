@@ -23,7 +23,7 @@
 import { formatUnits, PublicClient } from 'viem';
 import { Apy, LendingVault } from '../client';
 import { CONVEX_TOKEN_DECIMALS } from '../constants';
-import { calculateConvexTokenUsdPrice, ConvexTokenBalances, EnrichedConvexToken, fetchConvexTokenBalances } from './lps';
+import { ConvexTokenBalances, EnrichedConvexToken, fetchConvexTokenBalances } from './lps';
 import { to$$$ } from './format';
 
 /**
@@ -33,7 +33,7 @@ import { to$$$ } from './format';
 export type ConvexLvTokenBalances = ConvexTokenBalances;
 
 /**
- * Return all relevant info about a Convex LV token, starting from
+ * Return all relevant info about a Convex LV token, given
  * the API-returned `lendingVault` and `apy` objects (apy is optional).
  *
  * Optionally, pass the user account address to fetch the user balances.
@@ -41,12 +41,12 @@ export type ConvexLvTokenBalances = ConvexTokenBalances;
 export async function enrichConvexLvToken(vault: LendingVault, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
     // Compute base data
     const result: EnrichedConvexToken = {
-        type: 'lv',
+        type: 'LV',
         id: vault.convexPoolData.id,
         isBrokenOrShutdown: vault.convexPoolData.shutdown,
         uiName: getConvexLvTokenUiName(vault),
         TVL: vault.convexPoolData.usdTotal ?? null,
-        usdPrice: await calculateConvexTokenUsdPrice(vault, provider),
+        usdPrice: calculateConvexLvTokenUsdPrice(vault),
         curveId: vault.id,
         curveName: vault.name,
         curveTokenAddress: vault.address as `0x${string}`,
@@ -60,12 +60,22 @@ export async function enrichConvexLvToken(vault: LendingVault, provider: PublicC
     // Compute full user balances if we have an account
     if (account) {
         const d = CONVEX_TOKEN_DECIMALS;
-        result.userBalances = await fetchConvexTokenBalances(provider, vault.convexPoolData.id, account);
+        result.userBalances = await fetchConvexTokenBalances(provider, vault, account);
         result.userBalances.usdStaked = Number(formatUnits(result.userBalances.staked, d)) * result.usdPrice;
         result.userBalances.usdUnstaked = Number(formatUnits(result.userBalances.unstaked, d)) * result.usdPrice;
         result.userBalances.usdTotal = Number(result.userBalances.usdStaked + result.userBalances.usdUnstaked);
     }
     return result;
+}
+
+/**
+ * Calculate the USD price of a Convex LV token
+ * by dividing the TVL by the total number of shares
+ */
+export function calculateConvexLvTokenUsdPrice(vault: LendingVault): number {
+    const tvl = vault.totalSupplied.usdTotal;
+    const totalSupply = vault.vaultShares.totalShares;
+    return tvl ? tvl / totalSupply : NaN;
 }
 
 /**
@@ -105,14 +115,14 @@ export function formatConvexLvToken(convexLvToken: EnrichedConvexToken): string 
     parts.push(` - Convex ID: ${convexLvToken.id}`);
     parts.push(` - Underlying LP on Curve: "${convexLvToken.curveName}" with address ${convexLvToken.curveTokenAddress}`);
     if (convexLvToken.isBrokenOrShutdown) {
-        parts.push(` - ⚠️ Curve pool is either broken or shutdown!`);
+        parts.push(` - ⚠️ Vault is shutdown!`);
     }
     return parts.join('\n');
 }
 
 /**
  * Return a single line string with the most important data for the given
- * Convex LP pool.
+ * Convex LV token.
  */
 export function formatConvexLvTokenShort(convexLvToken: EnrichedConvexToken): string {
     let parts: string[] = [];
