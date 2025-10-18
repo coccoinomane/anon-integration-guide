@@ -15,7 +15,7 @@ import { Apy, ConvexCurveClient, LendingVault, Pool } from '../client';
 import { CONVEX_TOKEN_DECIMALS, CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, MULTICALL_BATCH_SIZE } from '../constants';
 import { to$$$ } from './format';
 import { calculateConvexLvTokenUsdPrice } from './vaults';
-import { calculateConvexAPY } from './apr';
+import { AprBreakdown, calculateConvexApr } from './apr';
 import { getChainNameFromProvider } from './chains';
 
 /**
@@ -55,6 +55,7 @@ export type EnrichedConvexToken = {
     isBrokenOrShutdown: boolean;
     uiName: string;
     uiApr?: number;
+    uiAprBreakdown?: AprBreakdown;
     uiApy?: number;
     TVL: number | null;
     usdPrice: number;
@@ -100,7 +101,7 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
             [CRV_TOKEN_ADDRESS.toLowerCase()]: apy.crvPrice ?? 0,
             [CVX_TOKEN_ADDRESS.toLowerCase()]: cvxPrice ?? 0,
         };
-        const apyResult = await calculateConvexAPY({
+        const apyResult = await calculateConvexApr({
             baseCrvApr: apy.baseApy ? apy.baseApy : (pool.baseApy ?? 0),
             poolId: pool.convexPoolData.id,
             tokenPrices,
@@ -110,6 +111,7 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
         });
         result.apiApy = apy;
         result.uiApr = apyResult.totalAPR;
+        result.uiAprBreakdown = apyResult;
         result.uiApy = apyResult.totalAPY;
     }
     // Compute full user balances if we have an account
@@ -330,7 +332,10 @@ export function formatConvexLpToken(convexLpToken: EnrichedConvexToken): string 
         parts.push(subParts.join(''));
     }
     parts.push(` - Total TVL: ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
-    parts.push(` - APR: ${convexLpToken.uiApr && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
+    parts.push(` - Total APR: ${convexLpToken.uiApr && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
+    if (convexLpToken.uiAprBreakdown) {
+        parts.push(` - APR breakdown: ${convexLpToken.uiAprBreakdown.breakdown.map((b) => `${b.tokenSymbol}: ${b.apr.toFixed(3)}%`).join(', ')}`);
+    }
     parts.push(` - Convex ID: ${convexLpToken.id}`);
     parts.push(` - Underlying LP on Curve: "${convexLpToken.curveName}" with address ${convexLpToken.curveTokenAddress}`);
     if (convexLpToken.isBrokenOrShutdown) {
@@ -349,7 +354,7 @@ export function formatConvexLpTokenShort(convexLpToken: EnrichedConvexToken): st
     parts.push(`with ID ${convexLpToken.id},`);
     parts.push(`underlying LP on Curve "${convexLpToken.curveName}",`);
     parts.push(`TVL ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
-    parts.push(`, APR ${convexLpToken.uiApr && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
+    parts.push(`, Total APR: ${convexLpToken.uiApr && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
     if (convexLpToken.userBalances) {
         parts.push(`- you own ${formatUnits(convexLpToken.userBalances.total, CONVEX_TOKEN_DECIMALS)}`);
         if (convexLpToken.userBalances.usdTotal) {

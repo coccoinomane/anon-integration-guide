@@ -15,12 +15,12 @@ import { CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, POOL_UTILITIES_CONTRACT_ADDRESS }
 
 const SECONDS_PER_YEAR = 31_536_000n;
 
-interface APRBreakdown {
+export interface AprBreakdown {
     // APRs from individual reward tokens, usually just CRV and CVX (in percentage, e.g., 5.2 means 5.2%)
     tokenAPRs: Record<`0x${string}`, number>;
     /** Total APR, given by the sum of all token APRs plus the base CRV APR (given as a percentage, e.g., 5.2 means 5.2%) */
     totalAPR: number;
-    /** APY, that is, APR asuming regular compounding */
+    /** APY, that is, APR assuming regular compounding */
     totalAPY: number;
 
     // Detailed breakdown of APRs from individual reward tokens
@@ -36,7 +36,7 @@ interface APRBreakdown {
     }[];
 }
 
-interface ConvexAPRParams {
+interface ConvexAprParams {
     // Base CRV APR from Curve API
     baseCrvApr: number;
 
@@ -66,7 +66,7 @@ interface ConvexAPRParams {
  * @param priceOfDeposit USD price of LP token
  * @returns APR as a percentage (e.g., 5.2 for 5.2%)
  */
-function calculateAPR(rate: bigint, priceOfReward: number, priceOfDeposit: number): number {
+function calculateApr(rate: bigint, priceOfReward: number, priceOfDeposit: number): number {
     // Convert prices to wei (1e18 scale)
     const priceOfRewardWei = BigInt(Math.floor(priceOfReward * 1e18));
     const priceOfDepositWei = BigInt(Math.floor(priceOfDeposit * 1e18));
@@ -82,7 +82,7 @@ function calculateAPR(rate: bigint, priceOfReward: number, priceOfDeposit: numbe
  * Calculate APR breakdown and total APY for Convex LP staking
  * Uses the PoolUtilities contract to get actual on-chain reward rates
  */
-export async function calculateConvexAPY(params: ConvexAPRParams): Promise<APRBreakdown> {
+export async function calculateConvexApr(params: ConvexAprParams): Promise<AprBreakdown> {
     const { baseCrvApr, poolId, tokenPrices, lpTokenPrice, provider, compoundingFrequency = 365 } = params;
 
     // 1. Call rewardRates() from the contract
@@ -96,7 +96,7 @@ export async function calculateConvexAPY(params: ConvexAPRParams): Promise<APRBr
     // tokens: address[] - array of reward token addresses
     // rates: uint256[] - array of rates (per second per 1e18 staked LP)
 
-    const breakdown: APRBreakdown['breakdown'] = [];
+    const breakdown: AprBreakdown['breakdown'] = [];
     const tokenAPRs: Record<`0x${string}`, number> = {};
     let totalAPR = 0;
 
@@ -118,16 +118,18 @@ export async function calculateConvexAPY(params: ConvexAPRParams): Promise<APRBr
         }
 
         // Calculate APR using the contract's formula
-        const apr = calculateAPR(rate, tokenPrice, lpTokenPrice);
+        let apr = calculateApr(rate, tokenPrice, lpTokenPrice);
 
         // Determine token symbol
-        let tokenSymbol = 'UNKNOWN';
+        let tokenSymbol: string;
         if (tokenAddress === CRV_TOKEN_ADDRESS.toLowerCase()) {
+            // Add base CRV APR
             tokenSymbol = 'CRV';
+            apr += baseCrvApr;
         } else if (tokenAddress === CVX_TOKEN_ADDRESS.toLowerCase()) {
             tokenSymbol = 'CVX';
         } else {
-            tokenSymbol = `UNKNOWN`;
+            tokenSymbol = 'UNKNOWN';
         }
 
         tokenAPRs[tokenAddress] = apr;
@@ -141,10 +143,7 @@ export async function calculateConvexAPY(params: ConvexAPRParams): Promise<APRBr
         });
     }
 
-    // 3. Add base CRV APR
-    totalAPR += baseCrvApr;
-
-    // 4. Convert APR to APY (compound interest)
+    // 3. Convert APR to APY (compound interest)
     const aprDecimal = totalAPR / 100;
     const totalAPY = (Math.pow(1 + aprDecimal / compoundingFrequency, compoundingFrequency) - 1) * 100;
 
