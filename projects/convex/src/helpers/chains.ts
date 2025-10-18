@@ -2,6 +2,7 @@ import { EVM, EvmChain } from '@heyanon/sdk';
 import * as chains from 'viem/chains';
 import { supportedChains } from '../constants';
 import { toTitleCase } from './format';
+import { PublicClient } from 'viem';
 
 const { getChainName } = EVM.utils;
 
@@ -40,4 +41,22 @@ export function getViemChainFromChainId(chainId: number): chains.Chain {
         throw new Error(`Viem does not support chain with Id '${chainId}'`);
     }
     return viemChain;
+}
+
+/**
+ * Helper function that returns the chain ID from a viem provider.
+ * Throws an error if the chain ID is not found.
+ */
+export function getChainIdFromProvider(provider: PublicClient): number {
+    if (!provider.chain) throw new Error('Could not find chain ID from provider');
+    return provider.chain.id;
+}
+
+/**
+ * Helper function that returns the HeyAnon chain name from a viem provider.
+ * Throws an error if the chain is not found.
+ */
+export function getChainNameFromProvider(provider: PublicClient): string {
+    const chainId = getChainIdFromProvider(provider);
+    return getChainNameFromChainId(chainId, false);
 }

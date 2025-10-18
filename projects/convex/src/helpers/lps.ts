@@ -11,11 +11,12 @@
  */
 
 import { erc20Abi, formatUnits, PublicClient } from 'viem';
-import { Apy, LendingVault, Pool } from '../client';
+import { Apy, ConvexCurveClient, LendingVault, Pool } from '../client';
 import { CONVEX_TOKEN_DECIMALS, CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, MULTICALL_BATCH_SIZE } from '../constants';
 import { to$$$ } from './format';
 import { calculateConvexLvTokenUsdPrice } from './vaults';
 import { calculateConvexAPY } from './apr';
+import { getChainNameFromProvider } from './chains';
 
 /**
  * How much does a user owns of a Convex LP or LV token, both staked and unstaked
@@ -68,9 +69,13 @@ export type EnrichedConvexToken = {
 
 /**
  * Return all relevant info about a Convex LP token, given
- * the API-returned `pool` and `apy` objects (apy is optional).
+ * the API-returned `pool`
  *
- * Optionally, pass the user account address to fetch the user balances.
+ * Optionally:
+ * - pass the user account address to fetch the user balances
+ *   (takes 1 request to the blockchain)
+ * - pass the APY object to compute the APR and APY (takes 1
+ *   request to the blockchain)
  */
 export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
     // Compute base data
@@ -89,13 +94,16 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
     };
     // Compute APY data if we have it
     if (apy) {
+        const chainName = getChainNameFromProvider(provider);
+        const cvxPrice = await new ConvexCurveClient().cvxPrice(chainName);
+        const tokenPrices = {
+            [CRV_TOKEN_ADDRESS.toLowerCase()]: apy.crvPrice ?? 0,
+            [CVX_TOKEN_ADDRESS.toLowerCase()]: cvxPrice ?? 0,
+        };
         const apyResult = await calculateConvexAPY({
             baseCrvApr: apy.baseApy ? apy.baseApy : (pool.baseApy ?? 0),
             poolId: pool.convexPoolData.id,
-            tokenPrices: {
-                [CRV_TOKEN_ADDRESS.toLowerCase()]: apy.crvPrice ?? -1,
-                [CVX_TOKEN_ADDRESS.toLowerCase()]: 0,
-            },
+            tokenPrices,
             lpTokenPrice,
             provider,
             compoundingFrequency: 365,

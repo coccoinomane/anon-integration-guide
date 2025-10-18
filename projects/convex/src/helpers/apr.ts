@@ -13,7 +13,7 @@ import { PublicClient } from 'viem';
 import { poolUtilitiesAbi } from '../abis/poolUtilitiesAbi';
 import { CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, POOL_UTILITIES_CONTRACT_ADDRESS } from '../constants';
 
-const SECONDS_PER_YEAR = 365n * 24n * 60n * 60n; // 31536000n
+const SECONDS_PER_YEAR = 31_536_000n;
 
 interface APRBreakdown {
     // APRs from individual reward tokens, usually just CRV and CVX (in percentage, e.g., 5.2 means 5.2%)

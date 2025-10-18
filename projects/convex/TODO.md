@@ -6,7 +6,6 @@
 
 ## Minor
 
-- Get CVX price from pools (just use usdPrice of the first coin with address0x4e3fbd56cd56c3e72c1403e103b45db9da5b9d2b)
 - In `findConvexLpInfo` and `findConvexLvInfo`:
     - Add APR also to LV output
     - Add if there are claimable rewards (https://d.pr/i/IUQMoB)

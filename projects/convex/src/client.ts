@@ -10,6 +10,7 @@
  */
 
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import { CVX_TOKEN_ADDRESS } from './constants';
 
 const BASE_URL = 'https://curve.convexfinance.com/api/';
 const DEFAULT_TIMEOUT = 15000;
@@ -314,7 +315,7 @@ export class ConvexCurveClient {
     @staticMemoize()
     async pools(chainName: string): Promise<Pool[]> {
         let endpoint = '';
-        switch (chainName) {
+        switch (chainName.toLowerCase()) {
             case 'ethereum':
                 endpoint = 'curve/pools';
                 break;
@@ -350,7 +351,7 @@ export class ConvexCurveClient {
     @staticMemoize()
     async lendingVaults(chainName: string): Promise<LendingVault[]> {
         let endpoint = '';
-        switch (chainName) {
+        switch (chainName.toLowerCase()) {
             case 'ethereum':
                 endpoint = 'curve/lending-vaults';
                 break;
@@ -380,7 +381,7 @@ export class ConvexCurveClient {
     @staticMemoize()
     async apys(chainName: string): Promise<ApyById> {
         let endpoint = '';
-        switch (chainName) {
+        switch (chainName.toLowerCase()) {
             case 'ethereum':
                 endpoint = 'curve-apys';
                 break;
@@ -407,6 +408,20 @@ export class ConvexCurveClient {
         }
 
         return response.apys;
+    }
+
+    /**
+     * Get the USD price of the CVX token, extracting it from the
+     * (memoized) pools endpoint response, or zero if not found
+     */
+    @staticMemoize()
+    async cvxPrice(chainName: string): Promise<number> {
+        const pools = await this.pools(chainName);
+        const cvxPools = pools.filter((pool) => pool.coins.some((coin) => coin.address.toLowerCase() === CVX_TOKEN_ADDRESS.toLowerCase()));
+        if (cvxPools.length === 0) {
+            return 0;
+        }
+        return cvxPools[0].coins.find((coin) => coin.address.toLowerCase() === CVX_TOKEN_ADDRESS.toLowerCase())?.usdPrice ?? 0;
     }
 }
 

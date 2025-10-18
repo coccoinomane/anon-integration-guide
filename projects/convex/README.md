@@ -13,10 +13,14 @@ More information on Convex Finance can be found on their own academy page: https
 
 ## Worth noting
 
-- Computing accurate APYs was tricky, see https://discord.com/channels/820795644494610432/864157305566527508/880860136523059210
-- Staking LP tokens is supported only on Ethereum, Arbitrum and Polygon (Fraxtal not supported by HeyAnon SDK yet)
-- Staking lending vault tokens (a.k.a. crvUSD positions) is supported only on Ethereum
-- CRV & CVX staking is only supported on Ethereum
+- Computing accurate APYs was the trickiest part, as I had to do some on-chain computation; for more details see:
+    - https://discord.com/channels/820795644494610432/864157305566527508/1428627572274630727
+    - https://docs.convexfinance.com/convexfinanceintegration/cvx-minting
+    - https://etherscan.io/address/0x5Fba69a794F395184b5760DAf1134028608e5Cd1#readContract
+    - https://discord.com/channels/820795644494610432/864157305566527508/880860136523059210
+
+- The Convex integration supports only Ethereum, where 96% of the protocol TVL is concentrated, and the only chain where you can stake CVX tokens
+
 - As of Oct 13 2025, cvxCRV is heavily depegged (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU)), should we disable the convert function?
 
 ## Examples of commands
