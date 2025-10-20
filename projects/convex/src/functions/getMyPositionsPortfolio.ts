@@ -1,5 +1,5 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
-import { CONVEX_TOKEN_DECIMALS, MIN_TVL, supportedChains } from '../constants';
+import { CONVEX_TOKEN_DECIMALS, MAX_POSITIONS_IN_RESULTS, MIN_TVL, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
 import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, isPool } from '../helpers/lps';
 import { to$$$, toTitleCase } from '../helpers/format';
@@ -61,7 +61,7 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
 
     // If no positions found, return early
     if (poolsAndVaultsWithBalance.length === 0) {
-        return toResult('You have no active positions on Convex for the selected criteria.');
+        return toResult('You do not seem to have active positions on Convex');
     }
 
     // Fetch Convex APYs across pools and vaults
@@ -87,15 +87,18 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     // Calculate total portfolio value
     const totalUsdValue = enrichedTokens.reduce((sum, token) => sum + (token.userBalances?.usdTotal ?? 0), 0);
 
-    // Format the output
+    // Initial message
+    const nPositions = enrichedTokens.length;
+    const firstNPositions = enrichedTokens.slice(0, MAX_POSITIONS_IN_RESULTS);
     const parts: string[] = [];
-    parts.push(`Your Convex Portfolio on ${chainName}:`);
-    parts.push(`Total Value: ${to$$$(totalUsdValue)}`);
-    parts.push(`Number of Positions: ${enrichedTokens.length}`);
-    parts.push('');
-    parts.push('Positions:');
+    parts.push(`You have ${nPositions} position${nPositions > 1 ? 's' : ''} in your Convex Portfolio on ${chainName}, for a total value of ${to$$$(totalUsdValue)}`);
+    if (nPositions > MAX_POSITIONS_IN_RESULTS) {
+        parts[parts.length - 1] += `. Showing only the top ${MAX_POSITIONS_IN_RESULTS} positions`;
+    }
+    parts[parts.length - 1] += ':';
 
-    enrichedTokens.forEach((ct, index) => {
+    // List the positions
+    firstNPositions.forEach((ct, index) => {
         let subParts: string[] = [];
         const balance = ct.userBalances!;
         const d = CONVEX_TOKEN_DECIMALS;
