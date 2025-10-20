@@ -46,8 +46,8 @@ export type ConvexTokenBalances = {
 export type EnrichedConvexToken = {
     /** The type of token, either a Convex LP Token or Convex LV Token */
     type: 'LP' | 'LV';
-    label: 'Liquidity Pool' | 'Lending Vault';
-    labelShort: 'pool' | 'vault';
+    typeLabel: 'Liquidity Pool' | 'Lending Vault';
+    typeLabelShort: 'pool' | 'vault';
     id: number;
     isBrokenOrShutdownOrKilled: boolean;
     uiName: string;
@@ -98,8 +98,8 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
     const lpTokenPrice = calculateTokenUsdPrice(obj);
     const result: EnrichedConvexToken = {
         type,
-        label: type === 'LP' ? 'Liquidity Pool' : 'Lending Vault',
-        labelShort: type === 'LP' ? 'pool' : 'vault',
+        typeLabel: type === 'LP' ? 'Liquidity Pool' : 'Lending Vault',
+        typeLabelShort: type === 'LP' ? 'pool' : 'vault',
         id: obj.convexPoolData.id,
         isBrokenOrShutdownOrKilled,
         uiName: isPool(obj) ? getConvexLpTokenUiName(obj) : getConvexLvTokenUiName(obj),
@@ -332,11 +332,11 @@ export async function fetchMultipleConvexTokenBalances(
  */
 export function formatConvexToken(ct: EnrichedConvexToken): string {
     let parts: string[] = [];
-    parts.push(`Info on Convex ${ct.label} token "${ct.uiName}":`);
+    parts.push(`Info on Convex ${ct.typeLabel} token "${ct.uiName}":`);
     if (ct.userBalances) {
         const d = CONVEX_TOKEN_DECIMALS;
         const subParts: string[] = [];
-        subParts.push(` - Your balance: ${formatUnits(ct.userBalances.total, d)} ${ct.labelShort} tokens`);
+        subParts.push(` - Your balance: ${formatUnits(ct.userBalances.total, d)} ${ct.typeLabelShort} tokens`);
         if (ct.userBalances.usdTotal) {
             subParts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
         }
@@ -358,9 +358,9 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
         parts[parts.length - 1] += ' (' + aprParts.join(', ') + ')';
     }
     parts.push(` - Convex ID: ${ct.id}`);
-    parts.push(` - Underlying ${ct.labelShort} on Curve: "${ct.curveName}" with address ${ct.curveTokenAddress}`);
+    parts.push(` - Underlying ${ct.typeLabelShort} on Curve: "${ct.curveName}" with address ${ct.curveTokenAddress}`);
     if (ct.isBrokenOrShutdownOrKilled) {
-        parts.push(` - ⚠️ ${toTitleCase(ct.labelShort)} may not be active anymore`);
+        parts.push(` - ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
     return parts.join('\n');
 }
@@ -371,9 +371,9 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
  */
 export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
     let parts: string[] = [];
-    parts.push(`Convex ${ct.labelShort} token ${ct.uiName}`);
+    parts.push(`Convex ${ct.typeLabelShort} token ${ct.uiName}`);
     parts.push(`with ID ${ct.id},`);
-    parts.push(`underlying ${ct.labelShort} on Curve "${ct.curveName}",`);
+    parts.push(`underlying ${ct.typeLabelShort} on Curve "${ct.curveName}",`);
     parts.push(`TVL ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(`, Total APR: ${ct.uiApr && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
     if (ct.userBalances) {
@@ -383,7 +383,7 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
         }
     }
     if (ct.isBrokenOrShutdownOrKilled) {
-        parts.push(`⚠️ ${toTitleCase(ct.labelShort)} may not be active anymore`);
+        parts.push(`⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
     return parts.filter(Boolean).join(' ');
 }

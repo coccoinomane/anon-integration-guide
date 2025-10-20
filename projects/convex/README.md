@@ -32,8 +32,6 @@ More information on Convex Finance can be found on their own academy page: https
     - My total TVL on Ethereum on Arbitrum on Convex
     - Value of my CRV+cvxCRV position on Ethereum on Convex?
     - Value of my WETH lending vault on Ethereum on Convex?
-    - TODO: How much CRV I have staked on Convex?
-    - TODO: Value of my locked CVX position on Convex
 
 ### Yield opportunities
 
@@ -46,16 +44,21 @@ More information on Convex Finance can be found on their own academy page: https
 
 ### Deposit & withdraw
 
-    - TODO: Convert and stake my CRV on Convex
     - TODO: Stake my Curve USDC-USDT liquidity on Convex
     - TODO: Stake my Curve sreUSD lending position on Convex
-    - TODO: Stake and lock 100 CVX on Convex
 
 ## Claim rewards
 
     - TODO: Show my claimable rewards on Convex
     - TODO: Claim all of my available rewards on Convex
     - TODO: Claim my LP rewards on Convex
+
+### CRV and CVX staking
+
+    - TODO: How much CRV I have staked on Convex?
+    - TODO: Value of my locked CVX position on Convex
+    - TODO: Convert and stake my CRV on Convex
+    - TODO: Stake and lock 100 CVX on Convex
 
 ## Test with the local agent
 

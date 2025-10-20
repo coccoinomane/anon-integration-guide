@@ -1,9 +1,9 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
-import { MIN_TVL, supportedChains, CONVEX_TOKEN_DECIMALS } from '../constants';
+import { CONVEX_TOKEN_DECIMALS, MIN_TVL, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, formatConvexTokenShort } from '../helpers/lps';
+import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, isPool } from '../helpers/lps';
+import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
-import { to$$$ } from '../helpers/format';
 
 interface Props {
     chainName: string;
@@ -38,16 +38,16 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     const client = new ConvexCurveClient();
 
     // Select the pools and vaults that need to be processed,
-    // filtering out those with low TVL or those which are either
-    // broken or shutdown
+    // filtering out those with low TVL or those to be excluded
+    // according to the criteria in the `shouldIncludePosition` function
     const poolAndVaults: (Pool | LendingVault)[] = [];
     if (types.includes('LP')) {
         const pools = await client.pools(chainName);
-        poolAndVaults.push(...pools.filter((pool) => pool.convexPoolData.usdTotal >= minTvl && !pool.isBroken && !pool.convexPoolData.shutdown));
+        poolAndVaults.push(...pools.filter((pool) => shouldIncludePosition(pool, minTvl)));
     }
     if (types.includes('LV')) {
         const vaults = await client.lendingVaults(chainName);
-        poolAndVaults.push(...vaults.filter((vault) => vault.convexPoolData.usdTotal >= minTvl && !vault.convexPoolData.shutdown));
+        poolAndVaults.push(...vaults.filter((vault) => shouldIncludePosition(vault, minTvl)));
     }
 
     // Fetch all balances in a single efficient multicall
@@ -70,11 +70,9 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     // Build enriched tokens for all positions with balances
     const enrichedTokens: EnrichedConvexToken[] = [];
     for (const poolOrVault of poolsAndVaultsWithBalance) {
-        const apy = apys[poolOrVault.id];
         const balance = balancesMap.get(poolOrVault.convexPoolData.id);
-
         // No account specified as we already fetched the balances
-        const enriched = await enrichConvexToken(poolOrVault, provider, apy);
+        const enriched = await enrichConvexToken(poolOrVault, provider, apys[poolOrVault.id], undefined);
         enriched.userBalances = balance;
         enrichedTokens.push(enriched);
     }
@@ -90,25 +88,43 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     const totalUsdValue = enrichedTokens.reduce((sum, token) => sum + (token.userBalances?.usdTotal ?? 0), 0);
 
     // Format the output
-    const lines: string[] = [];
-    lines.push(`Your Convex Portfolio on ${chainName}:`);
-    lines.push(`Total Value: ${to$$$(totalUsdValue)}`);
-    lines.push(`Number of Positions: ${enrichedTokens.length}`);
-    lines.push('');
-    lines.push('Positions:');
+    const parts: string[] = [];
+    parts.push(`Your Convex Portfolio on ${chainName}:`);
+    parts.push(`Total Value: ${to$$$(totalUsdValue)}`);
+    parts.push(`Number of Positions: ${enrichedTokens.length}`);
+    parts.push('');
+    parts.push('Positions:');
 
-    enrichedTokens.forEach((token, index) => {
-        const balance = token.userBalances!;
+    enrichedTokens.forEach((ct, index) => {
+        let subParts: string[] = [];
+        const balance = ct.userBalances!;
         const d = CONVEX_TOKEN_DECIMALS;
-        lines.push(`${index + 1}. ${formatConvexTokenShort(token)}`);
-        lines.push(`   Balance: ${formatUnits(balance.total, d)} tokens (${to$$$(balance.usdTotal ?? 0)})`);
-        if (balance.staked > 0n) {
-            lines.push(`   - Staked: ${formatUnits(balance.staked, d)} (${to$$$(balance.usdStaked ?? 0)}) - earning rewards`);
-        }
+        const usdValue = balance.usdTotal ? to$$$(balance.usdTotal) : 'N/A';
+        const unstaked = balance.unstaked > 0n ? formatUnits(balance.unstaked, d) : 'N/A';
+        subParts.push(`${index + 1}.`);
+        subParts.push(` ${usdValue}`);
+        subParts.push(` in Convex ${ct.typeLabel} "${ct.uiName}"`);
+        subParts.push(`, ${formatUnits(balance.total, d)} ${ct.type === 'LP' ? 'LP' : 'vault'} tokens`);
         if (balance.unstaked > 0n) {
-            lines.push(`   - Unstaked: ${formatUnits(balance.unstaked, d)} (${to$$$(balance.usdUnstaked ?? 0)}) - not earning rewards`);
+            subParts.push(` (of which ${unstaked} unstaked)`);
         }
+        subParts.push(` earning ${ct.uiApr?.toFixed(2)}% APR`);
+        if (ct.isBrokenOrShutdownOrKilled) {
+            subParts.push(` ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
+        }
+        parts.push(subParts.join(''));
     });
 
-    return toResult(lines.join('\n'));
+    return toResult(parts.join('\n'));
+}
+
+/**
+ * Whether to include a position in the results
+ */
+function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: number): boolean {
+    if (isPool(poolOrVault)) {
+        return poolOrVault.convexPoolData.usdTotal >= minTvl && !poolOrVault.isBroken && !poolOrVault.convexPoolData.shutdown && !poolOrVault.isGaugeKilled;
+    } else {
+        return poolOrVault.convexPoolData.usdTotal >= minTvl && !poolOrVault.convexPoolData.shutdown && !poolOrVault.isGaugeKilled;
+    }
 }

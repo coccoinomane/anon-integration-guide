@@ -49,7 +49,7 @@ export const tools = [
         function: {
             name: 'findConvexLpInfo',
             description:
-                'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token.',
+                'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token, including a breakdown of the earned APR yield.',
             strict: true,
             parameters: {
                 type: 'object',
@@ -76,7 +76,7 @@ export const tools = [
         function: {
             name: 'findConvexLvInfo',
             description:
-                'Find information about a specific Convex Lending Vault (LV) token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LV token. The result will include info on any user positions in the Convex LV token.',
+                'Find information about a specific Convex Lending Vault (LV) token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LV token. The result will include info on any user positions in the Convex LV token, including a breakdown of the earned APR yield.',
             strict: true,
             parameters: {
                 type: 'object',
