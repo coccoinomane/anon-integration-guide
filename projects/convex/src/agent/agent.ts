@@ -10,6 +10,7 @@ import chalk from 'chalk';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { Exchange } from 'ccxt';
 import { getViemChainFromChainId } from '../helpers/chains';
+import { httpWithLogging } from './logging';
 
 // AI configuration
 const OPENAI_MODEL = 'gpt-4.1';
@@ -70,6 +71,8 @@ interface Options {
     action: string;
     debugLlm?: boolean;
     debugTools?: boolean;
+    debugViem?: boolean;
+    rpc?: string;
     notify?: (message: string) => Promise<void>;
 }
 
@@ -82,7 +85,7 @@ interface Options {
  * The agent has an additional step to analyze the data provided by the tools
  * and provide a final answer.
  */
-export async function agent({ action, debugLlm, debugTools, notify }: Options): Promise<FunctionReturn> {
+export async function agent({ action, debugLlm, debugTools, debugViem, rpc, notify }: Options): Promise<FunctionReturn> {
     const llmClient = getLlmClient();
 
     const privateKey = process.env.PRIVATE_KEY;
@@ -100,19 +103,19 @@ export async function agent({ action, debugLlm, debugTools, notify }: Options): 
             getProvider: (chainId: number) =>
                 createPublicClient({
                     chain: getViemChainFromChainId(chainId),
-                    transport: http(),
+                    transport: debugViem ? httpWithLogging(rpc) : http(rpc),
                 }),
             getAddress: () => Promise.resolve(signer.address),
             sendTransactions: async (props: EVM.types.SendTransactionProps) => {
                 const provider = createPublicClient({
                     chain: getViemChainFromChainId(props.chainId),
-                    transport: http(),
+                    transport: debugViem ? httpWithLogging(rpc) : http(rpc),
                 });
                 // Create wallet client
                 const walletClient = createWalletClient({
                     account: signer,
                     chain: provider.chain,
-                    transport: http(),
+                    transport: debugViem ? httpWithLogging(rpc) : http(rpc),
                 });
 
                 const txsReturns = [];

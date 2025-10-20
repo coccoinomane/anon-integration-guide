@@ -83,6 +83,8 @@ Options:
 
 - `--debug-llm`: Show the actual LLM responses
 - `--debug-tools`: Show the output of every tool call
+- `--debug-viem`: Show the output of every blockchain call
+- `--rpc <url>`: Custom RPC URL to use for blockchain interactions
 
 ## Useful links
 

@@ -12,6 +12,8 @@ program
     .argument('<action>', 'The action to perform on the agent')
     .option('--debug-llm', 'Enable LLM debugging')
     .option('--debug-tools', 'Enable tools debugging')
+    .option('--debug-viem', 'Enable Viem client request/response logging')
+    .option('--rpc <url>', 'Custom RPC URL to use for blockchain interactions')
     .parse();
 
 const options = program.opts();
@@ -23,6 +25,8 @@ async function main() {
         action,
         debugLlm: options.debugLlm,
         debugTools: options.debugTools,
+        debugViem: options.debugViem,
+        rpc: options.rpc,
     });
 
     // Print result

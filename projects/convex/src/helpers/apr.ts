@@ -106,7 +106,7 @@ export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSym
 
         // Get token price
         const tokenPrice = tokenPrices[tokenAddress];
-        if (!tokenPrice) {
+        if (rate > 0n && !tokenPrice) {
             console.warn(`Could not compute APR from reward token ${tokenAddress}: token price not found`);
             continue;
         }
