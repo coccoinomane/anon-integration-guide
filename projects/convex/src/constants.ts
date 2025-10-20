@@ -48,7 +48,12 @@ export const CONVEX_TOKEN_DECIMALS = 18;
 /**
  * Maximum number of positions to show when calling the portfolio tool
  */
-export const MAX_POSITIONS_IN_RESULTS = 30;
+export const N_MAX_RESULTS_IN_PORTFOLIO = 30;
+
+/**
+ * Maximum number of positions to show when calling the best yield tool
+ */
+export const N_MAX_RESULTS_IN_BEST_YIELD = 15;
 
 /**
  * Minimum TVL in dollars for a Convex pool or vault to be shown

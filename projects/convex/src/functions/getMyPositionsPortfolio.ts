@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
-import { CONVEX_TOKEN_DECIMALS, MAX_POSITIONS_IN_RESULTS, MIN_TVL, supportedChains } from '../constants';
+import { CONVEX_TOKEN_DECIMALS, N_MAX_RESULTS_IN_PORTFOLIO, MIN_TVL, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, isPool } from '../helpers/lps';
+import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, shouldIncludePosition } from '../helpers/lps';
 import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
 
@@ -40,28 +40,28 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     // Select the pools and vaults that need to be processed,
     // filtering out those with low TVL or those to be excluded
     // according to the criteria in the `shouldIncludePosition` function
-    const poolAndVaults: (Pool | LendingVault)[] = [];
+    const poolsAndVaults: (Pool | LendingVault)[] = [];
     if (types.includes('LP')) {
         const pools = await client.pools(chainName);
-        poolAndVaults.push(...pools.filter((pool) => shouldIncludePosition(pool, minTvl)));
+        poolsAndVaults.push(...pools.filter((pool) => shouldIncludePosition(pool, minTvl)));
     }
     if (types.includes('LV')) {
         const vaults = await client.lendingVaults(chainName);
-        poolAndVaults.push(...vaults.filter((vault) => shouldIncludePosition(vault, minTvl)));
+        poolsAndVaults.push(...vaults.filter((vault) => shouldIncludePosition(vault, minTvl)));
     }
 
     // Fetch all balances in a single efficient multicall
-    const balancesMap = await fetchMultipleConvexTokenBalances(provider, poolAndVaults, account, true);
+    const balancesMap = await fetchMultipleConvexTokenBalances(provider, poolsAndVaults, account, true);
 
     // Filter to only pools/vaults where the user has a non-zero balance
-    const poolsAndVaultsWithBalance = poolAndVaults.filter((poolOrVault) => {
+    const poolsAndVaultsWithBalance = poolsAndVaults.filter((poolOrVault) => {
         const balance = balancesMap.get(poolOrVault.convexPoolData.id);
         return balance && balance.total > 0n;
     });
 
     // If no positions found, return early
     if (poolsAndVaultsWithBalance.length === 0) {
-        return toResult('You do not seem to have active positions on Convex');
+        return toResult(`You do not seem to have active positions on Convex ${chainName} chain`);
     }
 
     // Fetch Convex APYs across pools and vaults
@@ -89,11 +89,11 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
 
     // Initial message
     const nPositions = enrichedTokens.length;
-    const firstNPositions = enrichedTokens.slice(0, MAX_POSITIONS_IN_RESULTS);
+    const firstNPositions = enrichedTokens.slice(0, N_MAX_RESULTS_IN_PORTFOLIO);
     const parts: string[] = [];
     parts.push(`You have ${nPositions} position${nPositions > 1 ? 's' : ''} in your Convex Portfolio on ${chainName}, for a total value of ${to$$$(totalUsdValue)}`);
-    if (nPositions > MAX_POSITIONS_IN_RESULTS) {
-        parts[parts.length - 1] += `. Showing only the top ${MAX_POSITIONS_IN_RESULTS} positions`;
+    if (nPositions > N_MAX_RESULTS_IN_PORTFOLIO) {
+        parts[parts.length - 1] += `. Showing only the top ${N_MAX_RESULTS_IN_PORTFOLIO} positions`;
     }
     parts[parts.length - 1] += ':';
 
@@ -119,15 +119,4 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     });
 
     return toResult(parts.join('\n'));
-}
-
-/**
- * Whether to include a position in the results
- */
-function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: number): boolean {
-    if (isPool(poolOrVault)) {
-        return poolOrVault.convexPoolData.usdTotal >= minTvl && !poolOrVault.isBroken && !poolOrVault.convexPoolData.shutdown && !poolOrVault.isGaugeKilled;
-    } else {
-        return poolOrVault.convexPoolData.usdTotal >= minTvl && !poolOrVault.convexPoolData.shutdown && !poolOrVault.isGaugeKilled;
-    }
 }

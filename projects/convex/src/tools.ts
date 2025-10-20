@@ -1,5 +1,5 @@
 import { AdapterExport, EVM } from '@heyanon/sdk';
-import { MAX_POSITIONS_IN_RESULTS, MIN_TVL, supportedChains } from './constants';
+import { MIN_TVL, N_MAX_RESULTS_IN_BEST_YIELD, N_MAX_RESULTS_IN_PORTFOLIO, supportedChains } from './constants';
 import { to$$$ } from './helpers/format';
 
 const { getChainName } = EVM.utils;
@@ -11,7 +11,7 @@ export const tools = [
             name: 'getMyPositionsPortfolio',
             description: [
                 [
-                    `Show the top ${MAX_POSITIONS_IN_RESULTS} positions in the user's portfolio on the given chain, including Convex Liquidity Pools (LP) tokens and Convex Lending Vaults (LV) tokens;`,
+                    `Show the top ${N_MAX_RESULTS_IN_PORTFOLIO} positions in the user's portfolio on the given chain, including Convex Liquidity Pools (LP) tokens and Convex Lending Vaults (LV) tokens;`,
                     `For each position, shows the token balance, dollar value and yield (APR).`,
                     `The total portfolio value (TVL) across all positions is also shown.`,
                     `Optionally, select which types of positions to show using the 'positionTypes' parameter; default is all types (LP and LV).`,
@@ -40,6 +40,44 @@ export const tools = [
                     },
                 },
                 required: ['chainName', 'positionTypes', 'minTvl'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'getBestYieldForToken',
+            description: [
+                `Show the top ${N_MAX_RESULTS_IN_BEST_YIELD} yield opportunities for the given underlying token on Convex, sorted by APR yield.`,
+                `The result will include both Convex Liquidity Pools (LP) and Convex Lending Vaults (LV).`,
+                `Will only include positions with a TVL of at least ${to$$$(MIN_TVL, 0, 0)} dollars.`,
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    tokenSymbol: {
+                        type: 'string',
+                        description: 'Symbol of the underlying token to search for, for example "CRV" or "CVX"',
+                    },
+                    positionTypes: {
+                        type: ['array', 'null'],
+                        description: 'List of position types to include in the result. By default, all types (LP and LV) are included',
+                        items: {
+                            type: 'string',
+                            enum: ['LP', 'LV'],
+                        },
+                    },
+                    // Contrary to the portfolio tool, here the user is
+                    // not allowed to customize minTvl
+                },
+                required: ['chainName', 'tokenSymbol', 'positionTypes'],
                 additionalProperties: false,
             },
         },

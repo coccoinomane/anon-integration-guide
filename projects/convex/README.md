@@ -35,12 +35,11 @@ More information on Convex Finance can be found on their own academy page: https
 
 ### Yield opportunities
 
-    - TODO: Surface best opportunities on Convex on Ethereum based on my portfolio
-    - TODO: Best yields on Convex on Ethereum?
-    - Show me the APY of the Convex FRAX+USDe pool on Ethereum on Convex
-    - Show me the all the details of the eUSD lending vault on Ethereum
-    - TODO: Give me APY of Convex CRV staking on Ethereum
-    - TODO: Show Convex pools with highest APY on Ethereum
+    - Best yields for WETH on Convex on Ethereum?
+    - Show me lending opportunities for BTC on Convex on Ethereum
+    - Convex pools with USDe on Ethereum
+    - APY of the Convex FRAX+USDe pool on Ethereum on Convex
+    - Am I better off lending my WETH or LPing it on Convex on Ethereum?
 
 ### Deposit & withdraw
 
@@ -59,6 +58,7 @@ More information on Convex Finance can be found on their own academy page: https
     - TODO: Value of my locked CVX position on Convex
     - TODO: Convert and stake my CRV on Convex
     - TODO: Stake and lock 100 CVX on Convex
+    - TODO: Give me APY of Convex CRV staking on Ethereum
 
 ## Test with the local agent
 

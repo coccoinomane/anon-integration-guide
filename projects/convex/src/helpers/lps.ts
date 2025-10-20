@@ -387,3 +387,18 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
     }
     return parts.filter(Boolean).join(' ');
 }
+
+/**
+ * Whether to include a position in the results of the
+ * listing tools (getMyPositionsPortfolio and getBestYieldForToken)
+ */
+export function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: number): boolean {
+    const conditions: boolean[] = [];
+    conditions.push(poolOrVault.convexPoolData.usdTotal >= minTvl);
+    conditions.push(!poolOrVault.isGaugeKilled);
+    conditions.push(!poolOrVault.convexPoolData.shutdown);
+    if (isPool(poolOrVault)) {
+        conditions.push(!poolOrVault.isBroken);
+    }
+    return conditions.every((condition) => condition);
+}
