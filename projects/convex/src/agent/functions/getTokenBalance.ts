@@ -1,7 +1,7 @@
 import { Address, erc20Abi, formatUnits } from 'viem';
 import { EVM, EvmChain, FunctionReturn, toResult, FunctionOptions } from '@heyanon/sdk';
 import { supportedChains } from '../../constants';
-import { fetchTokenInfoFromAddress } from '../../helpers/tokens';
+import { tokenHelper } from '../../helpers/tokenHelper';
 
 interface Props {
     chainName: string;
@@ -25,7 +25,8 @@ export async function getTokenBalance({ chainName, tokenAddress, account }: Prop
     if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);
     if (!supportedChains.includes(chainId)) return toResult(`Unsupported chain: ${chainName}`, true);
 
-    const token = await fetchTokenInfoFromAddress(getProvider(chainId), tokenAddress);
+    const provider = getProvider(chainId);
+    const token = await tokenHelper.getInfoFromAddress(provider, tokenAddress);
     if (!token) return toResult(`Token not found: ${tokenAddress}`, true);
     account = account ?? (await getAddress());
 

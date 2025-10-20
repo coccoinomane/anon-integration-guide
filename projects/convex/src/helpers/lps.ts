@@ -45,8 +45,10 @@ export type PoolInfo = {
 };
 
 /**
- * All relevant info about a Convex LP or LV token, including the API-returned
- * data, derived data, and the user's balances
+ * All relevant info about a Convex LP or LV token, including the
+ * API-returned data, derived data, and the user's balances.
+ *
+ * APRs and APYs are expressed as percents (5.2 means 5.2%)
  */
 export type EnrichedConvexToken = {
     /** The type of token, either a Convex LP Token or Convex LV Token */
@@ -54,6 +56,8 @@ export type EnrichedConvexToken = {
     id: number;
     isBrokenOrShutdown: boolean;
     uiName: string;
+    /** The base APR for the token: swap fees for pools, lending interest for vaults */
+    baseApr?: number;
     uiApr?: number;
     uiAprBreakdown?: AprBreakdown;
     uiApy?: number;
@@ -65,7 +69,7 @@ export type EnrichedConvexToken = {
     curveTokenAddress: `0x${string}`;
     /** The API-returned object, either a Pool or a LendingVault */
     apiObject: Pool | LendingVault;
-    apiApy?: Apy;
+    apiApyObject?: Apy;
 };
 
 /**
@@ -111,7 +115,6 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
             [CVX_TOKEN_ADDRESS.toLowerCase()]: cvxPrice ?? 0,
         };
         const aprResult = await calculateConvexApr({
-            baseCrvApr: isPool(obj) ? obj.baseApy : apy.baseApy,
             poolId: obj.convexPoolData.id,
             tokenPrices,
             lpTokenPrice,
@@ -119,8 +122,9 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
             compoundingFrequency: 365,
         });
         console.log('aprResult', aprResult);
-        result.apiApy = apy;
-        result.uiApr = aprResult.totalAPR;
+        result.apiApyObject = apy;
+        result.baseApr = isPool(obj) ? obj.baseApy : obj.rates.lendApyPcent;
+        result.uiApr = aprResult.totalAPR + result.baseApr;
         result.uiAprBreakdown = aprResult;
         result.uiApy = aprResult.totalAPY;
     }
@@ -343,8 +347,11 @@ export function formatConvexLpToken(convexLpToken: EnrichedConvexToken): string 
     }
     parts.push(` - Total TVL: ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
     parts.push(` - Total APR: ${typeof convexLpToken.uiApr === 'number' && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
-    if (convexLpToken.uiApr && convexLpToken.uiAprBreakdown) {
-        parts.push(` - APR breakdown: ${convexLpToken.uiAprBreakdown.breakdown.map((b) => `${b.tokenSymbol}: ${b.apr.toFixed(3)}%`).join(', ')}`);
+    if (convexLpToken.uiApr && convexLpToken?.uiAprBreakdown?.breakdown && convexLpToken.uiAprBreakdown.breakdown.length > 0) {
+        let aprParts = [];
+        aprParts.push(`base APR: ${convexLpToken.baseApr?.toFixed(3)}%`);
+        convexLpToken.uiAprBreakdown.breakdown.forEach((b) => aprParts.push(`${b.tokenSymbol} rewards: ${b.apr.toFixed(3)}%`));
+        parts[parts.length - 1] += ' (' + aprParts.join(', ') + ')';
     }
     parts.push(` - Convex ID: ${convexLpToken.id}`);
     parts.push(` - Underlying LP on Curve: "${convexLpToken.curveName}" with address ${convexLpToken.curveTokenAddress}`);

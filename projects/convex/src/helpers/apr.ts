@@ -1,5 +1,5 @@
 /**
- * Calculate APR and APY for Convex LP and LV staking
+ * Calculate APR and APY for Convex LP and LV staking.
  * Uses the PoolUtilities contract to get actual on-chain reward rates
  * as shown on the Convex UI (Current vAPR > https://d.pr/i/V8QdM9)
  *
@@ -12,6 +12,7 @@
 import { PublicClient } from 'viem';
 import { poolUtilitiesAbi } from '../abis/poolUtilitiesAbi';
 import { CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, POOL_UTILITIES_CONTRACT_ADDRESS } from '../constants';
+import { tokenHelper } from './tokenHelper';
 
 const SECONDS_PER_YEAR = 31_536_000n;
 
@@ -37,9 +38,6 @@ export interface AprBreakdown {
 }
 
 interface ConvexAprParams {
-    // Base CRV APR from Curve API
-    baseCrvApr: number;
-
     // Pool ID on Convex
     poolId: number;
 
@@ -79,11 +77,12 @@ function calculateApr(rate: bigint, priceOfReward: number, priceOfDeposit: numbe
 }
 
 /**
- * Calculate APR breakdown and total APY for Convex LP staking
- * Uses the PoolUtilities contract to get actual on-chain reward rates
+ * Calculate APR breakdown and total APY for Convex LP staking.
+ * Uses the PoolUtilities contract to get actual on-chain reward rates.
+ * DOES NOT include base APR (swap fees for pools, lending interest for vaults)
  */
-export async function calculateConvexApr(params: ConvexAprParams): Promise<AprBreakdown> {
-    const { baseCrvApr, poolId, tokenPrices, lpTokenPrice, provider, compoundingFrequency = 365 } = params;
+export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSymbols: boolean = false): Promise<AprBreakdown> {
+    const { poolId, tokenPrices, lpTokenPrice, provider, compoundingFrequency = 365 } = params;
 
     // 1. Call rewardRates() from the contract
     const [tokens, rates] = (await provider.readContract({
@@ -123,13 +122,15 @@ export async function calculateConvexApr(params: ConvexAprParams): Promise<AprBr
         // Determine token symbol
         let tokenSymbol: string;
         if (tokenAddress === CRV_TOKEN_ADDRESS.toLowerCase()) {
-            // Add base CRV APR
             tokenSymbol = 'CRV';
-            apr += baseCrvApr;
         } else if (tokenAddress === CVX_TOKEN_ADDRESS.toLowerCase()) {
             tokenSymbol = 'CVX';
         } else {
-            tokenSymbol = 'UNKNOWN';
+            if (fetchTokensSymbols) {
+                tokenSymbol = await tokenHelper.getSymbol(provider, tokenAddress);
+            } else {
+                tokenSymbol = `TOKEN_${i}`;
+            }
         }
 
         tokenAPRs[tokenAddress] = apr;

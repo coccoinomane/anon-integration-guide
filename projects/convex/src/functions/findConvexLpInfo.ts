@@ -31,10 +31,11 @@ export async function findConvexLpInfo({ chainName, convexLpIdOrName }: Props, {
     if (!pool) {
         const matchingPools = pools.filter((pool) => getConvexLpTokenUiName(pool).toLowerCase() === convexLpIdOrName.toLowerCase());
         if (matchingPools.length > 1) {
+            const apys = await client.apys(chainName);
             let parts: string[] = [];
             parts.push(`Found ${matchingPools.length} matches for the query "${convexLpIdOrName}":`);
             for (const pool of matchingPools) {
-                const enrichedPool = await enrichConvexToken(pool, provider, undefined, account);
+                const enrichedPool = await enrichConvexToken(pool, provider, apys[pool.id], account);
                 parts.push(` - ${formatConvexLpTokenShort(enrichedPool)}`);
             }
             let message = parts.join('\n');
