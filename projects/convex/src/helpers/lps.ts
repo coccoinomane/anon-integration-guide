@@ -14,7 +14,7 @@ import { erc20Abi, formatUnits, PublicClient } from 'viem';
 import { Apy, ConvexCurveClient, LendingVault, Pool } from '../client';
 import { CONVEX_TOKEN_DECIMALS, CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, MULTICALL_BATCH_SIZE } from '../constants';
 import { to$$$ } from './format';
-import { calculateConvexLvTokenUsdPrice } from './vaults';
+import { calculateConvexLvTokenUsdPrice, getConvexLvTokenUiName } from './vaults';
 import { AprBreakdown, calculateConvexApr } from './apr';
 import { getChainNameFromProvider } from './chains';
 
@@ -78,20 +78,29 @@ export type EnrichedConvexToken = {
  * - pass the APY object to compute the APR and APY (takes 1
  *   request to the blockchain)
  */
-export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
+export async function enrichConvexToken(obj: Pool | LendingVault, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
+    // Determine the type of token
+    let type: 'LP' | 'LV';
+    if (isPool(obj)) {
+        type = 'LP';
+    } else if (isLendingVault(obj)) {
+        type = 'LV';
+    } else {
+        throw new Error('Could not determine the type of token (LP or Lending vault)');
+    }
     // Compute base data
-    const lpTokenPrice = calculateConvexLpTokenUsdPrice(pool);
+    const lpTokenPrice = calculateTokenUsdPrice(obj);
     const result: EnrichedConvexToken = {
-        type: 'LP',
-        id: pool.convexPoolData.id,
-        isBrokenOrShutdown: pool.isBroken || pool.convexPoolData.shutdown,
-        uiName: getConvexLpTokenUiName(pool),
-        TVL: pool.convexPoolData.usdTotal ?? null,
+        type,
+        id: obj.convexPoolData.id,
+        isBrokenOrShutdown: isPool(obj) ? obj.isBroken || obj.convexPoolData.shutdown : obj.convexPoolData.shutdown,
+        uiName: isPool(obj) ? getConvexLpTokenUiName(obj) : getConvexLvTokenUiName(obj),
+        TVL: obj.convexPoolData.usdTotal ?? null,
         usdPrice: lpTokenPrice,
-        curveId: pool.id,
-        curveName: pool.name,
-        curveTokenAddress: pool.lpTokenAddress as `0x${string}`,
-        apiObject: pool,
+        curveId: obj.id,
+        curveName: obj.name,
+        curveTokenAddress: isPool(obj) ? obj.lpTokenAddress : obj.address,
+        apiObject: obj,
     };
     // Compute APY data if we have it
     if (apy) {
@@ -101,22 +110,23 @@ export async function enrichConvexLpToken(pool: Pool, provider: PublicClient, ap
             [CRV_TOKEN_ADDRESS.toLowerCase()]: apy.crvPrice ?? 0,
             [CVX_TOKEN_ADDRESS.toLowerCase()]: cvxPrice ?? 0,
         };
-        const apyResult = await calculateConvexApr({
-            baseCrvApr: apy.baseApy ? apy.baseApy : (pool.baseApy ?? 0),
-            poolId: pool.convexPoolData.id,
+        const aprResult = await calculateConvexApr({
+            baseCrvApr: isPool(obj) ? obj.baseApy : apy.baseApy,
+            poolId: obj.convexPoolData.id,
             tokenPrices,
             lpTokenPrice,
             provider,
             compoundingFrequency: 365,
         });
+        console.log('aprResult', aprResult);
         result.apiApy = apy;
-        result.uiApr = apyResult.totalAPR;
-        result.uiAprBreakdown = apyResult;
-        result.uiApy = apyResult.totalAPY;
+        result.uiApr = aprResult.totalAPR;
+        result.uiAprBreakdown = aprResult;
+        result.uiApy = aprResult.totalAPY;
     }
     // Compute full user balances if we have an account
     if (account) {
-        result.userBalances = await fetchConvexTokenBalances(provider, pool, account, true);
+        result.userBalances = await fetchConvexTokenBalances(provider, obj, account, true);
     }
     return result;
 }
@@ -332,8 +342,8 @@ export function formatConvexLpToken(convexLpToken: EnrichedConvexToken): string 
         parts.push(subParts.join(''));
     }
     parts.push(` - Total TVL: ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
-    parts.push(` - Total APR: ${convexLpToken.uiApr && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
-    if (convexLpToken.uiAprBreakdown) {
+    parts.push(` - Total APR: ${typeof convexLpToken.uiApr === 'number' && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
+    if (convexLpToken.uiApr && convexLpToken.uiAprBreakdown) {
         parts.push(` - APR breakdown: ${convexLpToken.uiAprBreakdown.breakdown.map((b) => `${b.tokenSymbol}: ${b.apr.toFixed(3)}%`).join(', ')}`);
     }
     parts.push(` - Convex ID: ${convexLpToken.id}`);

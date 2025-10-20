@@ -1,8 +1,8 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { MIN_TVL, supportedChains, CONVEX_TOKEN_DECIMALS } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { enrichConvexLpToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, isPool, formatConvexLpTokenShort } from '../helpers/lps';
-import { enrichConvexLvToken, formatConvexLvTokenShort } from '../helpers/vaults';
+import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, formatConvexLpTokenShort } from '../helpers/lps';
+import { formatConvexLvTokenShort } from '../helpers/vaults';
 import { formatUnits } from 'viem';
 import { to$$$ } from '../helpers/format';
 
@@ -74,17 +74,10 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         const apy = apys[poolOrVault.id];
         const balance = balancesMap.get(poolOrVault.convexPoolData.id);
 
-        if (isPool(poolOrVault)) {
-            // No account specified as we already fetched the balances
-            const enriched = await enrichConvexLpToken(poolOrVault, provider, apy);
-            enriched.userBalances = balance;
-            enrichedTokens.push(enriched);
-        } else {
-            // No account specified as we already fetched the balances
-            const enriched = await enrichConvexLvToken(poolOrVault, provider, apy);
-            enriched.userBalances = balance;
-            enrichedTokens.push(enriched);
-        }
+        // No account specified as we already fetched the balances
+        const enriched = await enrichConvexToken(poolOrVault, provider, apy);
+        enriched.userBalances = balance;
+        enrichedTokens.push(enriched);
     }
 
     // Sort by USD value (highest first)

@@ -20,43 +20,11 @@
  * much of the code from LP helpers in lps.ts.
  */
 
-import { formatUnits, PublicClient } from 'viem';
-import { Apy, LendingVault } from '../client';
+import { formatUnits } from 'viem';
+import { LendingVault } from '../client';
 import { CONVEX_TOKEN_DECIMALS } from '../constants';
-import { EnrichedConvexToken, fetchConvexTokenBalances } from './lps';
+import { EnrichedConvexToken } from './lps';
 import { to$$$ } from './format';
-
-/**
- * Return all relevant info about a Convex LV token, given
- * the API-returned `lendingVault` and `apy` objects (apy is optional).
- *
- * Optionally, pass the user account address to fetch the user balances.
- */
-export async function enrichConvexLvToken(vault: LendingVault, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
-    // Compute base data
-    const result: EnrichedConvexToken = {
-        type: 'LV',
-        id: vault.convexPoolData.id,
-        isBrokenOrShutdown: vault.convexPoolData.shutdown,
-        uiName: getConvexLvTokenUiName(vault),
-        TVL: vault.convexPoolData.usdTotal ?? null,
-        usdPrice: calculateConvexLvTokenUsdPrice(vault),
-        curveId: vault.id,
-        curveName: vault.name,
-        curveTokenAddress: vault.address as `0x${string}`,
-        apiObject: vault,
-    };
-    // Compute APY data if we have it
-    if (apy) {
-        result.apiApy = apy;
-        result.uiApy = NaN;
-    }
-    // Compute full user balances if we have an account
-    if (account) {
-        result.userBalances = await fetchConvexTokenBalances(provider, vault, account, true);
-    }
-    return result;
-}
 
 /**
  * Calculate the USD price of a Convex LV token

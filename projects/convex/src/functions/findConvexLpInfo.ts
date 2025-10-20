@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { supportedChains } from '../constants';
 import { ConvexCurveClient } from '../client';
-import { formatConvexLpToken, formatConvexLpTokenShort, getConvexLpTokenUiName, enrichConvexLpToken } from '../helpers/lps';
+import { formatConvexLpToken, formatConvexLpTokenShort, getConvexLpTokenUiName, enrichConvexToken } from '../helpers/lps';
 
 interface Props {
     chainName: string;
@@ -34,7 +34,7 @@ export async function findConvexLpInfo({ chainName, convexLpIdOrName }: Props, {
             let parts: string[] = [];
             parts.push(`Found ${matchingPools.length} matches for the query "${convexLpIdOrName}":`);
             for (const pool of matchingPools) {
-                const enrichedPool = await enrichConvexLpToken(pool, provider, undefined, account);
+                const enrichedPool = await enrichConvexToken(pool, provider, undefined, account);
                 parts.push(` - ${formatConvexLpTokenShort(enrichedPool)}`);
             }
             let message = parts.join('\n');
@@ -59,7 +59,7 @@ export async function findConvexLpInfo({ chainName, convexLpIdOrName }: Props, {
 
     // Enrich the pool with the APY and user balances
     const apys = await client.apys(chainName);
-    const enrichedPool = await enrichConvexLpToken(pool, provider, apys[pool.id], account);
+    const enrichedPool = await enrichConvexToken(pool, provider, apys[pool.id], account);
 
     return toResult(formatConvexLpToken(enrichedPool));
 }

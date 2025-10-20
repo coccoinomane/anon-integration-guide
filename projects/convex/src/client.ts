@@ -99,7 +99,7 @@ export type Pool = {
     amplificationCoefficient: string;
     totalSupply: string;
     assetType: string;
-    lpTokenAddress: string | null;
+    lpTokenAddress: `0x${string}`;
     priceOracle?: number | null;
     symbol: string;
     implementation: string;
@@ -129,7 +129,7 @@ export type Pool = {
     factory?: boolean;
     gaugeStatus?: GaugeStatus;
     gaugeFutureCrvApy?: (number | null)[];
-    baseApy?: number;
+    baseApy: number;
 };
 
 export type PoolsResponse = {
@@ -216,7 +216,7 @@ type LendingVaultAmmBalances = {
 export type LendingVault = {
     id: string;
     name: string;
-    address: string;
+    address: `0x${string}`;
     controllerAddress: string;
     ammAddress: string;
     monetaryPolicyAddress: string;
