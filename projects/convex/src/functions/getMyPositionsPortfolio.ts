@@ -1,8 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { MIN_TVL, supportedChains, CONVEX_TOKEN_DECIMALS } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, formatConvexLpTokenShort } from '../helpers/lps';
-import { formatConvexLvTokenShort } from '../helpers/vaults';
+import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, formatConvexTokenShort } from '../helpers/lps';
 import { formatUnits } from 'viem';
 import { to$$$ } from '../helpers/format';
 
@@ -101,7 +100,7 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     enrichedTokens.forEach((token, index) => {
         const balance = token.userBalances!;
         const d = CONVEX_TOKEN_DECIMALS;
-        lines.push(`${index + 1}. ${token.type === 'LP' ? formatConvexLpTokenShort(token) : formatConvexLvTokenShort(token)}`);
+        lines.push(`${index + 1}. ${formatConvexTokenShort(token)}`);
         lines.push(`   Balance: ${formatUnits(balance.total, d)} tokens (${to$$$(balance.usdTotal ?? 0)})`);
         if (balance.staked > 0n) {
             lines.push(`   - Staked: ${formatUnits(balance.staked, d)} (${to$$$(balance.usdStaked ?? 0)}) - earning rewards`);

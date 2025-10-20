@@ -8,40 +8,33 @@
  * After obtaining a Convex LP token, it can then be further staked
  * on Convex to earn boosted CRV and (sometimes) CVX rewards; this
  * is the whole point of it.
+ *
+ * IMPORTANT: At the smart contract level, Convex does not make a
+ * difference between a pool (such as Curve pools) and a vault (such
+ * as Llamalend lending vaults).  Hence, many of the functions in this
+ * file work for both LP and LV tokens.  (More details in the documentation
+ * of vaults.ts).
  */
 
 import { erc20Abi, formatUnits, PublicClient } from 'viem';
 import { Apy, ConvexCurveClient, LendingVault, Pool } from '../client';
 import { CONVEX_TOKEN_DECIMALS, CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, MULTICALL_BATCH_SIZE } from '../constants';
-import { to$$$ } from './format';
+import { to$$$, toTitleCase } from './format';
 import { calculateConvexLvTokenUsdPrice, getConvexLvTokenUiName } from './vaults';
 import { AprBreakdown, calculateConvexApr } from './apr';
 import { getChainNameFromProvider } from './chains';
 
 /**
- * How much does a user owns of a Convex LP or LV token, both staked and unstaked
+ * How much does a user owns of a Convex LP or LV token, both
+ * staked and unstaked
  */
 export type ConvexTokenBalances = {
     staked: bigint; // Amount staked in reward pool earning rewards
     usdStaked?: number; // USD value of the staked amount
     unstaked: bigint; // Amount of deposit tokens in wallet (not staked)
     usdUnstaked?: number; // USD value of the unstaked amount
-    total: bigint; // Total Convex LP token exposure
+    total: bigint; // Total Convex LP or LV token exposure
     usdTotal?: number; // USD value of the total amount
-};
-
-/**
- * Information about a Convex pool, returned by the Booster contract
- * Please note that at the smart contract level, there is no difference
- * between a pool and a vault.
- */
-export type PoolInfo = {
-    lptoken: `0x${string}`; // The LP token deposited into Convex
-    token: `0x${string}`; // The Convex deposit token (cvxLP token)
-    gauge: `0x${string}`; // The Curve gauge address
-    crvRewards: `0x${string}`; // The BaseRewardPool address where staking happens
-    stash: `0x${string}`; // The stash contract for extra rewards
-    shutdown: boolean; // Whether the pool is shutdown
 };
 
 /**
@@ -53,8 +46,10 @@ export type PoolInfo = {
 export type EnrichedConvexToken = {
     /** The type of token, either a Convex LP Token or Convex LV Token */
     type: 'LP' | 'LV';
+    label: 'Liquidity Pool' | 'Lending Vault';
+    labelShort: 'pool' | 'vault';
     id: number;
-    isBrokenOrShutdown: boolean;
+    isBrokenOrShutdownOrKilled: boolean;
     uiName: string;
     /** The base APR for the token: swap fees for pools, lending interest for vaults */
     baseApr?: number;
@@ -73,8 +68,8 @@ export type EnrichedConvexToken = {
 };
 
 /**
- * Return all relevant info about a Convex LP token, given
- * the API-returned `pool`
+ * Return all relevant info about a Convex LP or LV token,
+ * given the API-returned `Pools` or `LendingVaults` objects
  *
  * Optionally:
  * - pass the user account address to fetch the user balances
@@ -92,12 +87,21 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
     } else {
         throw new Error('Could not determine the type of token (LP or Lending vault)');
     }
+    // Determine whether the pool is broken, shutdown, or killed
+    let isBrokenOrShutdownOrKilled: boolean;
+    if (isPool(obj)) {
+        isBrokenOrShutdownOrKilled = obj.isBroken || obj.convexPoolData.shutdown || obj.isGaugeKilled;
+    } else {
+        isBrokenOrShutdownOrKilled = obj.convexPoolData.shutdown || obj.isGaugeKilled;
+    }
     // Compute base data
     const lpTokenPrice = calculateTokenUsdPrice(obj);
     const result: EnrichedConvexToken = {
         type,
+        label: type === 'LP' ? 'Liquidity Pool' : 'Lending Vault',
+        labelShort: type === 'LP' ? 'pool' : 'vault',
         id: obj.convexPoolData.id,
-        isBrokenOrShutdown: isPool(obj) ? obj.isBroken || obj.convexPoolData.shutdown : obj.convexPoolData.shutdown,
+        isBrokenOrShutdownOrKilled,
         uiName: isPool(obj) ? getConvexLpTokenUiName(obj) : getConvexLvTokenUiName(obj),
         TVL: obj.convexPoolData.usdTotal ?? null,
         usdPrice: lpTokenPrice,
@@ -121,7 +125,6 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
             provider,
             compoundingFrequency: 365,
         });
-        console.log('aprResult', aprResult);
         result.apiApyObject = apy;
         result.baseApr = isPool(obj) ? obj.baseApy : obj.rates.lendApyPcent;
         result.uiApr = aprResult.totalAPR + result.baseApr;
@@ -212,7 +215,7 @@ export async function fetchConvexTokenBalances(
     });
 
     if (stakedBalance.status !== 'success' || unstakedBalance.status !== 'success') {
-        throw new Error('Could not fetch convex LP token balances');
+        throw new Error('Could not fetch Convex token balances');
     }
 
     const staked = stakedBalance.result;
@@ -324,59 +327,63 @@ export async function fetchMultipleConvexTokenBalances(
 }
 
 /**
- * Return a multiple line string with all data for the given Convex LP token
+ * Return a multiple line string with all data for the given
+ * Convex token
  */
-export function formatConvexLpToken(convexLpToken: EnrichedConvexToken): string {
+export function formatConvexToken(ct: EnrichedConvexToken): string {
     let parts: string[] = [];
-    parts.push(`Info on Convex LP token ${convexLpToken.uiName}:`);
-    if (convexLpToken.userBalances) {
+    parts.push(`Info on Convex ${ct.label} token "${ct.uiName}":`);
+    if (ct.userBalances) {
         const d = CONVEX_TOKEN_DECIMALS;
         const subParts: string[] = [];
-        subParts.push(` - Your balance: ${formatUnits(convexLpToken.userBalances.total, d)} LP`);
-        if (convexLpToken.userBalances.usdTotal) {
-            subParts.push(` (${to$$$(convexLpToken.userBalances.usdTotal)})`);
+        subParts.push(` - Your balance: ${formatUnits(ct.userBalances.total, d)} ${ct.labelShort} tokens`);
+        if (ct.userBalances.usdTotal) {
+            subParts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
         }
-        if (convexLpToken.userBalances.unstaked) {
-            subParts.push(` of which ${formatUnits(convexLpToken.userBalances.unstaked, d)}`);
-            if (convexLpToken.userBalances.usdUnstaked) {
-                subParts.push(` (${to$$$(convexLpToken.userBalances.usdUnstaked)})`);
+        if (ct.userBalances.unstaked) {
+            subParts.push(` of which ${formatUnits(ct.userBalances.unstaked, d)}`);
+            if (ct.userBalances.usdUnstaked) {
+                subParts.push(` (${to$$$(ct.userBalances.usdUnstaked)})`);
             }
             subParts.push(` is unstaked`);
         }
         parts.push(subParts.join(''));
     }
-    parts.push(` - Total TVL: ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
-    parts.push(` - Total APR: ${typeof convexLpToken.uiApr === 'number' && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
-    if (convexLpToken.uiApr && convexLpToken?.uiAprBreakdown?.breakdown && convexLpToken.uiAprBreakdown.breakdown.length > 0) {
+    parts.push(` - Total TVL: ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
+    parts.push(` - Total APR: ${typeof ct.uiApr === 'number' && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
+    if (ct.uiApr && ct?.uiAprBreakdown?.breakdown && ct.uiAprBreakdown.breakdown.length > 0) {
         let aprParts = [];
-        aprParts.push(`base APR: ${convexLpToken.baseApr?.toFixed(3)}%`);
-        convexLpToken.uiAprBreakdown.breakdown.forEach((b) => aprParts.push(`${b.tokenSymbol} rewards: ${b.apr.toFixed(3)}%`));
+        aprParts.push(`base APR: ${ct.baseApr?.toFixed(3)}%`);
+        ct.uiAprBreakdown.breakdown.forEach((b) => aprParts.push(`${b.tokenSymbol} rewards: ${b.apr.toFixed(3)}%`));
         parts[parts.length - 1] += ' (' + aprParts.join(', ') + ')';
     }
-    parts.push(` - Convex ID: ${convexLpToken.id}`);
-    parts.push(` - Underlying LP on Curve: "${convexLpToken.curveName}" with address ${convexLpToken.curveTokenAddress}`);
-    if (convexLpToken.isBrokenOrShutdown) {
-        parts.push(` - ⚠️ Pool is either broken or shutdown!`);
+    parts.push(` - Convex ID: ${ct.id}`);
+    parts.push(` - Underlying ${ct.labelShort} on Curve: "${ct.curveName}" with address ${ct.curveTokenAddress}`);
+    if (ct.isBrokenOrShutdownOrKilled) {
+        parts.push(` - ⚠️ ${toTitleCase(ct.labelShort)} may not be active anymore`);
     }
     return parts.join('\n');
 }
 
 /**
  * Return a single line string with the most important data for the given
- * Convex LP pool.
+ * Convex token.
  */
-export function formatConvexLpTokenShort(convexLpToken: EnrichedConvexToken): string {
+export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
     let parts: string[] = [];
-    parts.push(`Convex LP token ${convexLpToken.uiName}`);
-    parts.push(`with ID ${convexLpToken.id},`);
-    parts.push(`underlying LP on Curve "${convexLpToken.curveName}",`);
-    parts.push(`TVL ${convexLpToken.TVL ? to$$$(convexLpToken.TVL, 0, 0) : 'N/A'}`);
-    parts.push(`, Total APR: ${convexLpToken.uiApr && convexLpToken.uiApr >= 0 ? `${convexLpToken.uiApr.toFixed(2)}%` : 'N/A'}`);
-    if (convexLpToken.userBalances) {
-        parts.push(`- you own ${formatUnits(convexLpToken.userBalances.total, CONVEX_TOKEN_DECIMALS)}`);
-        if (convexLpToken.userBalances.usdTotal) {
-            parts.push(`(${to$$$(convexLpToken.userBalances.usdTotal)})`);
+    parts.push(`Convex ${ct.labelShort} token ${ct.uiName}`);
+    parts.push(`with ID ${ct.id},`);
+    parts.push(`underlying ${ct.labelShort} on Curve "${ct.curveName}",`);
+    parts.push(`TVL ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
+    parts.push(`, Total APR: ${ct.uiApr && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
+    if (ct.userBalances) {
+        parts.push(`- you own ${formatUnits(ct.userBalances.total, CONVEX_TOKEN_DECIMALS)}`);
+        if (ct.userBalances.usdTotal) {
+            parts.push(`(${to$$$(ct.userBalances.usdTotal)})`);
         }
+    }
+    if (ct.isBrokenOrShutdownOrKilled) {
+        parts.push(`⚠️ ${toTitleCase(ct.labelShort)} may not be active anymore`);
     }
     return parts.filter(Boolean).join(' ');
 }

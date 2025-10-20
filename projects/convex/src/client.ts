@@ -237,7 +237,7 @@ export type LendingVault = {
     ammBalances: LendingVaultAmmBalances;
     blockchainId: string;
     registryId: string;
-    isGaugeKilled?: boolean;
+    isGaugeKilled: boolean;
     gaugeWeight?: string;
     gaugeRelativeWeight?: string;
     gaugeCrvApy?: number[];

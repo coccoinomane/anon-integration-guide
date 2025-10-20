@@ -1,8 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { supportedChains } from '../constants';
 import { ConvexCurveClient } from '../client';
-import { formatConvexLvTokenShort } from '../helpers/vaults';
-import { enrichConvexToken, formatConvexLpToken } from '../helpers/lps';
+import { enrichConvexToken, formatConvexToken, formatConvexTokenShort } from '../helpers/lps';
 
 interface Props {
     chainName: string;
@@ -32,11 +31,12 @@ export async function findConvexLvInfo({ chainName, convexLvIdOrName }: Props, {
     if (!vault) {
         const matchingVaults = vaults.filter((vault) => vault.assets.collateral.symbol.toLowerCase() === convexLvIdOrName.toLowerCase());
         if (matchingVaults.length > 1) {
+            const apys = await client.apys(chainName);
             let parts: string[] = [];
             parts.push(`Found ${matchingVaults.length} matches for the query "${convexLvIdOrName}":`);
             for (const vault of matchingVaults) {
-                const enrichedVault = await enrichConvexToken(vault, provider, undefined, account);
-                parts.push(` - ${formatConvexLvTokenShort(enrichedVault)}`);
+                const enrichedVault = await enrichConvexToken(vault, provider, apys[vault.id], account);
+                parts.push(` - ${formatConvexTokenShort(enrichedVault)}`);
             }
             let message = parts.join('\n');
             return toResult(message); // not an error, let the LLM decide what to do
@@ -58,5 +58,5 @@ export async function findConvexLvInfo({ chainName, convexLvIdOrName }: Props, {
     const apys = await client.apys(chainName);
     const enrichedVault = await enrichConvexToken(vault, provider, apys[vault.id], account);
 
-    return toResult(formatConvexLpToken(enrichedVault));
+    return toResult(formatConvexToken(enrichedVault));
 }

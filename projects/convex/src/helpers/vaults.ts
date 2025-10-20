@@ -20,11 +20,7 @@
  * much of the code from LP helpers in lps.ts.
  */
 
-import { formatUnits } from 'viem';
 import { LendingVault } from '../client';
-import { CONVEX_TOKEN_DECIMALS } from '../constants';
-import { EnrichedConvexToken } from './lps';
-import { to$$$ } from './format';
 
 /**
  * Calculate the USD price of a Convex LV token
@@ -45,54 +41,4 @@ export function calculateConvexLvTokenUsdPrice(vault: LendingVault): number {
  */
 export function getConvexLvTokenUiName(vault: LendingVault): string {
     return `${vault.assets.borrowed.symbol} (${vault.assets.collateral.symbol} collateral)`;
-}
-
-/**
- * Return a multiple line string with all data for the given Convex LV token
- */
-export function formatConvexLvToken(convexLvToken: EnrichedConvexToken): string {
-    let parts: string[] = [];
-    parts.push(`Info on Convex LV token "${convexLvToken.uiName}":`);
-    if (convexLvToken.userBalances) {
-        const d = CONVEX_TOKEN_DECIMALS;
-        const subParts: string[] = [];
-        subParts.push(` - Your balance: ${formatUnits(convexLvToken.userBalances.total, d)} LV`);
-        if (convexLvToken.userBalances.usdTotal) {
-            subParts.push(` (${to$$$(convexLvToken.userBalances.usdTotal)})`);
-        }
-        if (convexLvToken.userBalances.unstaked) {
-            subParts.push(` of which ${formatUnits(convexLvToken.userBalances.unstaked, d)}`);
-            if (convexLvToken.userBalances.usdUnstaked) {
-                subParts.push(` (${to$$$(convexLvToken.userBalances.usdUnstaked)})`);
-            }
-            subParts.push(` is unstaked`);
-        }
-        parts.push(subParts.join(''));
-    }
-    parts.push(` - Total TVL: ${convexLvToken.TVL ? to$$$(convexLvToken.TVL, 0, 0) : 'N/A'}`);
-    parts.push(` - Convex ID: ${convexLvToken.id}`);
-    parts.push(` - Underlying LP on Curve: "${convexLvToken.curveName}" with address ${convexLvToken.curveTokenAddress}`);
-    if (convexLvToken.isBrokenOrShutdown) {
-        parts.push(` - ⚠️ Vault is shutdown!`);
-    }
-    return parts.join('\n');
-}
-
-/**
- * Return a single line string with the most important data for the given
- * Convex LV token.
- */
-export function formatConvexLvTokenShort(convexLvToken: EnrichedConvexToken): string {
-    let parts: string[] = [];
-    parts.push(`Convex LV token "${convexLvToken.uiName}"`);
-    parts.push(`with ID ${convexLvToken.id},`);
-    parts.push(`underlying LP on Curve "${convexLvToken.curveName}",`);
-    parts.push(`TVL ${convexLvToken.TVL ? to$$$(convexLvToken.TVL, 0, 0) : 'N/A'}`);
-    if (convexLvToken.userBalances) {
-        parts.push(`- you own ${formatUnits(convexLvToken.userBalances.total, CONVEX_TOKEN_DECIMALS)}`);
-        if (convexLvToken.userBalances.usdTotal) {
-            parts.push(`(${to$$$(convexLvToken.userBalances.usdTotal)})`);
-        }
-    }
-    return parts.filter(Boolean).join(' ');
 }
