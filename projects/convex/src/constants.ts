@@ -60,7 +60,7 @@ export const N_MAX_RESULTS_IN_BEST_YIELD = 15;
  * in the list tool.  For the portfolio tool, this acts as a default
  * value for the minTvl argument.
  */
-export const MIN_TVL = 100_000;
+export const MIN_TVL = 50_000;
 
 /**
  * Types of positions a user can hold on Convex Finance
