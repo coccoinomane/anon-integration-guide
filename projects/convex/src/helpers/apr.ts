@@ -10,9 +10,9 @@
  */
 
 import { PublicClient } from 'viem';
-import { poolUtilitiesAbi } from '../abis/poolUtilitiesAbi';
 import { CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, POOL_UTILITIES_CONTRACT_ADDRESS } from '../constants';
 import { tokenHelper } from './tokenHelper';
+import { poolUtilitiesAbi } from '../abis';
 
 const SECONDS_PER_YEAR = 31_536_000n;
 

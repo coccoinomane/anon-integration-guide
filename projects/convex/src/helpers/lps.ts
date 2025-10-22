@@ -18,12 +18,13 @@
 
 import { erc20Abi, formatUnits, PublicClient } from 'viem';
 import { Apy, ConvexCurveClient, LendingVault, Pool } from '../client';
-import { CONVEX_TOKEN_DECIMALS, CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, MULTICALL_BATCH_SIZE } from '../constants';
+import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_TOKEN_DECIMALS, CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, MULTICALL_BATCH_SIZE } from '../constants';
 import { to$$$, toTitleCase } from './format';
 import { calculateConvexLvTokenUsdPrice, getConvexLvTokenUiName } from './vaults';
 import { AprBreakdown, calculateConvexApr } from './apr';
 import { getChainNameFromProvider } from './chains';
 import Big from 'big.js';
+import { boosterAbi } from '../abis';
 
 /**
  * How much does a user owns of a Convex LP or LV token, both
@@ -66,6 +67,18 @@ export type EnrichedConvexToken = {
     /** The API-returned object, either a Pool or a LendingVault */
     apiObject: Pool | LendingVault;
     apiApyObject?: Apy;
+};
+
+/**
+ * Pool info returned by Booster.poolInfo()
+ */
+export type BoosterPoolInfo = {
+    lptoken: `0x${string}`;
+    token: `0x${string}`;
+    gauge: `0x${string}`;
+    crvRewards: `0x${string}`;
+    stash: `0x${string}`;
+    shutdown: boolean;
 };
 
 /**
@@ -411,4 +424,25 @@ export function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: 
         conditions.push(!poolOrVault.isBroken);
     }
     return conditions.every((condition) => condition);
+}
+
+/**
+ * Fetch pool info from Booster contract
+ */
+export async function fetchBoosterPoolInfo(provider: PublicClient, convexTokenId: number): Promise<BoosterPoolInfo> {
+    const result = (await provider.readContract({
+        address: CONVEX_BOOSTER_CONTRACT_ADDRESS,
+        abi: boosterAbi,
+        functionName: 'poolInfo',
+        args: [BigInt(convexTokenId)],
+    })) as [`0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`, boolean];
+
+    return {
+        lptoken: result[0],
+        token: result[1],
+        gauge: result[2],
+        crvRewards: result[3],
+        stash: result[4],
+        shutdown: result[5],
+    };
 }

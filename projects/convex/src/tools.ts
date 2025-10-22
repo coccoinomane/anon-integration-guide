@@ -4,7 +4,100 @@ import { to$$$ } from './helpers/format';
 
 const { getChainName } = EVM.utils;
 
+const DEPOSIT_TOOLS_ADDENDUM = [
+    'The act of depositing the tokens will result in the creation of Convex LP or LV tokens; these will be automatically staked in the rewards contract to earn CRV, CVX, and other rewards.',
+    'Use getConvexLiquidityPool or getConvexLendingVault first to find the Convex ID of the pool/vault token.',
+].join('\n');
+
 export const tools = [
+    {
+        type: 'function',
+        function: {
+            name: 'depositExactTokens',
+            description: ['Deposit and stake a specific amount of Curve tokens (either LP tokens or Lending Vault tokens) into Convex.', DEPOSIT_TOOLS_ADDENDUM].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    convexTokenId: {
+                        type: 'number',
+                        description: 'The numeric ID of the Convex pool or vault to deposit into',
+                    },
+                    amount: {
+                        type: 'string',
+                        description: 'The amount of Curve tokens to deposit, in decimal format (e.g., "1.5" for 1.5 tokens)',
+                    },
+                },
+                required: ['chainName', 'convexTokenId', 'amount'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'depositDollarAmount',
+            description: [
+                'Deposit and stake a specified USD value of Curve tokens (either LP tokens or Lending Vault tokens) into Convex.',
+                'The function converts the dollar amount to the exact number of tokens based on current prices from the Curve API.',
+                DEPOSIT_TOOLS_ADDENDUM,
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    convexTokenId: {
+                        type: 'number',
+                        description: 'The numeric ID of the Convex pool or vault to deposit into',
+                    },
+                    dollarAmount: {
+                        type: 'number',
+                        description: 'The USD value of tokens to deposit (e.g., 100 for $100 worth of tokens)',
+                    },
+                },
+                required: ['chainName', 'convexTokenId', 'dollarAmount'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'depositFractionOfTokens',
+            description: ["Deposit and stake a percentage of the user's Curve tokens (either LP tokens or Lending Vault tokens) into Convex.", DEPOSIT_TOOLS_ADDENDUM].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    convexTokenId: {
+                        type: 'number',
+                        description: 'The numeric ID of the Convex pool or vault to deposit into',
+                    },
+                    percentage: {
+                        type: 'number',
+                        description: "The percentage of user's Curve tokens to deposit (0-100, e.g., 50 for 50%, 100 for all tokens)",
+                    },
+                },
+                required: ['chainName', 'convexTokenId', 'percentage'],
+                additionalProperties: false,
+            },
+        },
+    },
     {
         type: 'function',
         function: {
