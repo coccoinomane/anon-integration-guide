@@ -9,7 +9,10 @@ interface Props {
     positionTypes: ('LP' | 'LV')[] | null;
 }
 
-export async function getBestYieldForToken({ chainName, tokenSymbol, positionTypes }: Props, { evm: { getProvider } }: FunctionOptions): Promise<FunctionReturn> {
+export async function getBestYieldOpportunitiesForUnderlyingToken(
+    { chainName, tokenSymbol, positionTypes }: Props,
+    { evm: { getProvider } }: FunctionOptions,
+): Promise<FunctionReturn> {
     // Validate and sanitize the position types
     let types = positionTypes ?? ['LP', 'LV'];
     for (const type of types) {

@@ -400,7 +400,7 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
 
 /**
  * Whether to include a position in the results of the
- * listing tools (getMyPositionsPortfolio and getBestYieldForToken)
+ * listing tools (getMyPositionsPortfolio and getBestYieldOpportunitiesForUnderlyingToken)
  */
 export function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: number): boolean {
     const conditions: boolean[] = [];

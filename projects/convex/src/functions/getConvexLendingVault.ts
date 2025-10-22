@@ -8,7 +8,7 @@ interface Props {
     convexLvIdOrName: string;
 }
 
-export async function findConvexLvInfo({ chainName, convexLvIdOrName }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
+export async function getConvexLendingVault({ chainName, convexLvIdOrName }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
     // Validation
     const chainId = EVM.utils.getChainFromName(chainName as EvmChain);
     if (!chainId) return toResult(`Unsupported chain name: ${chainName}`, true);
