@@ -23,6 +23,7 @@ import { to$$$, toTitleCase } from './format';
 import { calculateConvexLvTokenUsdPrice, getConvexLvTokenUiName } from './vaults';
 import { AprBreakdown, calculateConvexApr } from './apr';
 import { getChainNameFromProvider } from './chains';
+import Big from 'big.js';
 
 /**
  * How much does a user owns of a Convex LP or LV token, both
@@ -77,7 +78,7 @@ export type EnrichedConvexToken = {
  * - pass the APY object to compute the APR and APY (takes 1
  *   request to the blockchain)
  */
-export async function enrichConvexToken(obj: Pool | LendingVault, provider: PublicClient, apy?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
+export async function enrichConvexToken(obj: Pool | LendingVault, provider: PublicClient, apyFromApi?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
     // Determine the type of token
     let type: 'LP' | 'LV';
     if (isPool(obj)) {
@@ -110,12 +111,12 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
         curveTokenAddress: isPool(obj) ? obj.lpTokenAddress : obj.address,
         apiObject: obj,
     };
-    // Compute APY data if we have it
-    if (apy) {
+    // Compute APR data if we have it
+    if (apyFromApi) {
         const chainName = getChainNameFromProvider(provider);
         const cvxPrice = await new ConvexCurveClient().cvxPrice(chainName);
         const tokenPrices = {
-            [CRV_TOKEN_ADDRESS.toLowerCase()]: apy.crvPrice ?? 0,
+            [CRV_TOKEN_ADDRESS.toLowerCase()]: apyFromApi.crvPrice ?? 0,
             [CVX_TOKEN_ADDRESS.toLowerCase()]: cvxPrice ?? 0,
         };
         const aprResult = await calculateConvexApr({
@@ -123,13 +124,19 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
             tokenPrices,
             lpTokenPrice,
             provider,
-            compoundingFrequency: 365,
         });
-        result.apiApyObject = apy;
+        result.apiApyObject = apyFromApi;
         result.baseApr = isPool(obj) ? obj.baseApy : obj.rates.lendApyPcent;
         result.uiApr = aprResult.totalAPR + result.baseApr;
         result.uiAprBreakdown = aprResult;
-        result.uiApy = aprResult.totalAPY;
+
+        // Compute APY data from APR assuming daily compounding
+        if (aprResult.totalAPR > 0) {
+            const compoundingFrequency = 365;
+            const aprDecimal = new Big(result.uiApr).div(100);
+            const base = new Big(1).plus(aprDecimal.div(compoundingFrequency));
+            result.uiApy = base.pow(compoundingFrequency).minus(1).times(100).toNumber();
+        }
     }
     // Compute full user balances if we have an account
     if (account) {
@@ -356,6 +363,9 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
         aprParts.push(`base APR: ${ct.baseApr?.toFixed(3)}%`);
         ct.uiAprBreakdown.breakdown.forEach((b) => aprParts.push(`${b.tokenSymbol} rewards: ${b.apr.toFixed(3)}%`));
         parts[parts.length - 1] += ' (' + aprParts.join(', ') + ')';
+    }
+    if (ct.uiApy) {
+        parts.push(` - Total APY: ${ct.uiApy >= 0 ? `${ct.uiApy.toFixed(2)}%` : 'N/A'}`);
     }
     parts.push(` - Convex ID: ${ct.id}`);
     parts.push(` - Underlying ${ct.typeLabelShort} on Curve: "${ct.curveName}" with address ${ct.curveTokenAddress}`);

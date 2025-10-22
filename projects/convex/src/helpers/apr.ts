@@ -21,8 +21,6 @@ export interface AprBreakdown {
     tokenAPRs: Record<`0x${string}`, number>;
     /** Total APR, given by the sum of all token APRs plus the base CRV APR (given as a percentage, e.g., 5.2 means 5.2%) */
     totalAPR: number;
-    /** APY, that is, APR assuming regular compounding */
-    totalAPY: number;
 
     // Detailed breakdown of APRs from individual reward tokens
     breakdown: {
@@ -50,9 +48,6 @@ interface ConvexAprParams {
 
     // Viem provider
     provider: PublicClient;
-
-    // Compounding frequency for APY calculation (default: 365 for daily)
-    compoundingFrequency?: number;
 }
 
 /**
@@ -82,7 +77,7 @@ function calculateApr(rate: bigint, priceOfReward: number, priceOfDeposit: numbe
  * DOES NOT include base APR (swap fees for pools, lending interest for vaults)
  */
 export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSymbols: boolean = false): Promise<AprBreakdown> {
-    const { poolId, tokenPrices, lpTokenPrice, provider, compoundingFrequency = 365 } = params;
+    const { poolId, tokenPrices, lpTokenPrice, provider } = params;
 
     // 1. Call rewardRates() from the contract
     const [tokens, rates] = (await provider.readContract({
@@ -144,14 +139,9 @@ export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSym
         });
     }
 
-    // 3. Convert APR to APY (compound interest)
-    const aprDecimal = totalAPR / 100;
-    const totalAPY = (Math.pow(1 + aprDecimal / compoundingFrequency, compoundingFrequency) - 1) * 100;
-
     return {
         tokenAPRs,
         totalAPR,
-        totalAPY,
         breakdown,
     };
 }

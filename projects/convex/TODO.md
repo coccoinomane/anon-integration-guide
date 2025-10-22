@@ -6,7 +6,7 @@
 
 ## Minor
 
-- In `findConvexLpInfo` and `findConvexLvInfo`:
+- In `getConvexLiquidityPool` and `getConvexLendingVault`:
     - Add if there are claimable rewards (https://d.pr/i/IUQMoB)
 - Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
 - Drop Polygon and Arbitrum support (less than 1% of TVL combined)

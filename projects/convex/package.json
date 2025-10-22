@@ -42,6 +42,7 @@
     "dependencies": {
         "@heyanon/sdk": "2.3.1",
         "axios": "^1.12.2",
+        "big.js": "^7.0.1",
         "vitest": "^2.1.8"
     }
 }
