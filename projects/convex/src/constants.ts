@@ -5,13 +5,10 @@ const { ChainIds } = EVM.constants;
 /**
  * Chains supported by the integration.
  *
- * As of Oct 2025:
- * - Convex supports Frax chain, but it is not supported by HeyAnon SDK yet
- * - Only Ethereum (and Fraxtal) supports staking lending  positions
- * - CRV & CVX staking is only supported on Ethereum
- * - cvxCRV is heavily depegged, so if you convert CRV to cvxCRV directly you will lose money (better to swap) > https://www.defiwars.xyz/projects/convex
+ * As of Oct 2025, this integration supports only Ethereum,
+ * where 96% of Convex TVL is concentrated
  */
-export const supportedChains = [ChainIds[Chain.ETHEREUM], ChainIds[Chain.ARBITRUM], ChainIds[Chain.POLYGON]];
+export const supportedChains = [ChainIds[Chain.ETHEREUM]];
 
 /**
  * Addresses of the Convex Booster contract on Ethereum

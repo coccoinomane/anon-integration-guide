@@ -9,7 +9,7 @@
 - In `getConvexLiquidityPool` and `getConvexLendingVault`:
     - Add if there are claimable rewards (https://d.pr/i/IUQMoB)
 - Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
-- Drop Polygon and Arbitrum support (less than 1% of TVL combined)
 - How to check CRV and CVX staking APR > https://discord.com/channels/820795644494610432/864157305566527508/1154349279763234868
+- Add docstring for functions
 
 ## Future

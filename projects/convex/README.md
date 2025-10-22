@@ -29,7 +29,7 @@ More information on Convex Finance can be found on their own academy page: https
 
     - Show all my positions on Ethereum on Convex
     - Show my LP positions on Ethereum on Convex
-    - My total TVL on Ethereum on Arbitrum on Convex
+    - My total TVL on Ethereum on Convex
     - Value of my CRV+cvxCRV position on Ethereum on Convex?
     - Value of my WETH lending vault on Ethereum on Convex?
 
