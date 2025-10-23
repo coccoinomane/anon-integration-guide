@@ -7,12 +7,7 @@
 ## Minor
 
 - In deposit tools:
-    - check fraction deposit
-    - check dollar deposit
     - check depositing vault
-    - check case of non-esistant pool/vault
-    - check case of insufficient balance
-    - check token approval
     - maybe show URL to Curve pool/lending vault if not enough tokens?
 - In `getConvexLiquidityPool` and `getConvexLendingVault`:
     - Add if there are claimable rewards (https://d.pr/i/IUQMoB)

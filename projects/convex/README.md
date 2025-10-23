@@ -29,7 +29,7 @@ More information on Convex Finance can be found on their own academy page: https
 
 - Show all my positions on Ethereum on Convex
 - Show my LP positions on Ethereum on Convex
-- Do I have any Curve positions I can deposit on Convex? ([Screenshot](https://d.pr/i/wJBaOY))
+- Do I have any Curve positions I can deposit on Convex?
 - My total TVL on Ethereum on Convex
 - Value of my CRV+cvxCRV position on Ethereum on Convex?
 - Value of my WETH lending vault on Ethereum on Convex?
@@ -49,6 +49,7 @@ Please note that the portfolio tool will also surface Curve LP tokens that are n
 - Deposit all of my USDC-USDT liquidity on Convex on Ethereum
 - Deposit 50% of my ETH-stETH liquidity on Convex on Ethereum
 - Deposit 0.1 LP tokens in Convex pool crv+cvxCRV on Ethereum
+- Deposit \$100 worth of CRV+cvxCRV on Convex on Ethereum
 - Deposit my Curve sreUSD lending position on Convex
 
 Please note that the tool will deposit & stake the tokens in one transaction.

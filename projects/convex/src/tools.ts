@@ -5,7 +5,7 @@ import { to$$$ } from './helpers/format';
 const { getChainName } = EVM.utils;
 
 const DEPOSIT_TOOLS_ADDENDUM = [
-    'The act of depositing the tokens will result in the creation of Convex LP or LV tokens; these will be automatically staked in the rewards contract to earn CRV, CVX, and other rewards.',
+    'The act of depositing the Curve tokens will result in the creation of the same amount of Convex tokens; these will be automatically staked in the rewards contract to earn CRV, CVX, and other rewards.',
     'Use getConvexLiquidityPool or getConvexLendingVault first to find the Convex ID of the pool/vault token.',
 ].join('\n');
 
@@ -179,8 +179,11 @@ export const tools = [
         type: 'function',
         function: {
             name: 'getConvexLiquidityPool',
-            description:
-                'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token, including a breakdown of the earned APR yield.',
+            description: [
+                [
+                    'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token, including a breakdown of the earned APR yield.',
+                ].join('\n'),
+            ].join('\n'),
             strict: true,
             parameters: {
                 type: 'object',
@@ -206,8 +209,9 @@ export const tools = [
         type: 'function',
         function: {
             name: 'getConvexLendingVault',
-            description:
+            description: [
                 'Find information about a specific Convex Lending Vault (LV) token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LV token. The result will include info on any user positions in the Convex LV token, including a breakdown of the earned APR yield.',
+            ].join('\n'),
             strict: true,
             parameters: {
                 type: 'object',

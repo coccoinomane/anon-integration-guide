@@ -72,7 +72,7 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     // String with list of yet-to-deposit Curve tokens
     let poolsAndVaultsWithCurveBalanceSummary = firstNPoolsAndVaultsWithCurveBalance.reduce((acc, p) => {
         const balance = balancesMap.get(p.convexPoolData.id) as ConvexTokenBalances;
-        acc += `\n - Curve ${isPool(p) ? 'LP' : 'vault'} "${p.name}" with ID ${p.convexPoolData.id}: ${formatUnits(balance.underlying, d)} tokens${balance.usdUnderlying ? ` worth ${to$$$(balance.usdUnderlying)}` : ''}`;
+        acc += `\n - Curve ${isPool(p) ? 'LP' : 'vault'} "${p.name}" with ID ${p.convexPoolData.id}: ${formatUnits(balance.underlying, d)} ${isPool(p) ? 'LP' : 'vault'} tokens${balance.usdUnderlying ? ` worth ${to$$$(balance.usdUnderlying)}` : ''}`;
         return acc;
     }, '' as string);
 

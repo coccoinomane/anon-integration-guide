@@ -395,9 +395,9 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
         }
         parts.push(subParts.join(''));
         if (ct.userBalances.underlying) {
-            parts.push(` - You can still deposit on Convex: ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel}`);
+            parts.push(` - You can ${ct.userBalances.total > 0n ? 'still deposit' : 'deposit on Convex'}: ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel}`);
             if (ct.userBalances.usdUnderlying) {
-                parts.push(` (${to$$$(ct.userBalances.usdUnderlying)})`);
+                parts[parts.length - 1] += ` (${to$$$(ct.userBalances.usdUnderlying)})`;
             }
         }
     }
@@ -440,6 +440,9 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
             }
             if (ct.userBalances.underlying > 0n) {
                 parts.push(` and you can deposit ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} more`);
+                if (ct.userBalances.usdUnderlying) {
+                    parts.push(` (${to$$$(ct.userBalances.usdUnderlying)})`);
+                }
             }
         } else if (ct.userBalances.underlying > 0n) {
             parts.push(` - you can deposit ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} on Convex`);
@@ -458,12 +461,21 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
 export function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: number): boolean {
     const conditions: boolean[] = [];
     conditions.push(poolOrVault.convexPoolData.usdTotal >= minTvl);
-    conditions.push(!poolOrVault.isGaugeKilled);
-    conditions.push(!poolOrVault.convexPoolData.shutdown);
-    if (isPool(poolOrVault)) {
-        conditions.push(!poolOrVault.isBroken);
-    }
+    conditions.push(!poolOrVaultIsInactive(poolOrVault));
     return conditions.every((condition) => condition);
+}
+
+/**
+ * Whether a pool or vault is inactive, i.e. broken, shutdown or killed
+ */
+export function poolOrVaultIsInactive(poolOrVault: Pool | LendingVault): boolean {
+    const conditions: boolean[] = [];
+    conditions.push(poolOrVault.isGaugeKilled);
+    conditions.push(poolOrVault.convexPoolData.shutdown);
+    if (isPool(poolOrVault)) {
+        conditions.push(poolOrVault.isBroken);
+    }
+    return conditions.some((condition) => condition);
 }
 
 /**
