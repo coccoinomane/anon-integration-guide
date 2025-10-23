@@ -7,6 +7,7 @@ const { getChainName } = EVM.utils;
 const DEPOSIT_TOOLS_ADDENDUM = [
     'The act of depositing the Curve tokens will result in the creation of the same amount of Convex tokens; these will be automatically staked in the rewards contract to earn CRV, CVX, and other rewards.',
     'Use getConvexLiquidityPool or getConvexLendingVault first to find the Convex ID of the pool/vault token.',
+    'IMPORTANT: If multiple pools/vaults with the same name exist, you MUST ask the user to specify which exact pool/vault they want to deposit into. Do NOT automatically choose the first result.',
 ].join('\n');
 
 export const tools = [
