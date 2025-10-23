@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { CONVEX_TOKEN_DECIMALS, N_MAX_RESULTS_IN_PORTFOLIO, MIN_TVL, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, shouldIncludePosition } from '../helpers/lps';
+import { ConvexTokenBalances, enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, isPool, shouldIncludePosition } from '../helpers/lps';
 import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
 
@@ -34,6 +34,9 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     const provider = getProvider(chainId);
     const account = await getAddress();
 
+    // Shorthand for the Convex token decimals (18)
+    const d = CONVEX_TOKEN_DECIMALS;
+
     // Create Convex API client
     const client = new ConvexCurveClient();
 
@@ -59,9 +62,34 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         return balance && balance.total > 0n;
     });
 
+    // Find Curve tokens the user has yet to deposit on Convex
+    const poolsAndVaultsWithCurveBalance = poolsAndVaults.filter((poolOrVault) => {
+        const balance = balancesMap.get(poolOrVault.convexPoolData.id);
+        return balance && balance.underlying > 0n;
+    });
+    const firstNPoolsAndVaultsWithCurveBalance = poolsAndVaultsWithCurveBalance.slice(0, N_MAX_RESULTS_IN_PORTFOLIO);
+
+    // String with list of yet-to-deposit Curve tokens
+    let poolsAndVaultsWithCurveBalanceSummary = firstNPoolsAndVaultsWithCurveBalance.reduce((acc, p) => {
+        const balance = balancesMap.get(p.convexPoolData.id) as ConvexTokenBalances;
+        acc += `\n - Curve ${isPool(p) ? 'LP' : 'vault'} "${p.name}" with ID ${p.convexPoolData.id}: ${formatUnits(balance.underlying, d)} tokens${balance.usdUnderlying ? ` worth ${to$$$(balance.usdUnderlying)}` : ''}`;
+        return acc;
+    }, '' as string);
+
+    // We will show only a subset to avoid wasting tokens
+    const nYetToDeposit = poolsAndVaultsWithCurveBalance.length;
+    if (nYetToDeposit > N_MAX_RESULTS_IN_PORTFOLIO) {
+        poolsAndVaultsWithCurveBalanceSummary += `\n - ... and ${nYetToDeposit - N_MAX_RESULTS_IN_PORTFOLIO} more`;
+    }
+
     // If no positions found, return early
     if (poolsAndVaultsWithBalance.length === 0) {
-        return toResult(`You do not seem to have active positions on Convex ${chainName} chain`);
+        let msg = `You do not seem to have active positions on Convex ${chainName} chain`;
+        // Add a message if the user has Curve tokens in their wallet but not on Convex
+        if (nYetToDeposit) {
+            msg += `. However, you do have ${nYetToDeposit} Curve token${nYetToDeposit > 1 ? 's' : ''} in your wallet that you could deposit on Convex: ${poolsAndVaultsWithCurveBalanceSummary}`;
+        }
+        return toResult(msg);
     }
 
     // Fetch Convex APYs across pools and vaults
@@ -101,7 +129,6 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     firstNPositions.forEach((ct, index) => {
         let subParts: string[] = [];
         const balance = ct.userBalances!;
-        const d = CONVEX_TOKEN_DECIMALS;
         const usdValue = balance.usdTotal ? to$$$(balance.usdTotal) : 'N/A';
         const unstaked = balance.unstaked > 0n ? formatUnits(balance.unstaked, d) : 'N/A';
         subParts.push(`${index + 1}.`);
@@ -111,12 +138,21 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         if (balance.unstaked > 0n) {
             subParts.push(` (of which ${unstaked} unstaked)`);
         }
-        subParts.push(` earning ${ct.uiApr?.toFixed(2)}% APR`);
+        if (ct.uiApr) {
+            subParts.push(` earning ${ct.uiApr.toFixed(2)}% APR`);
+        }
         if (ct.isBrokenOrShutdownOrKilled) {
             subParts.push(` ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
         }
         parts.push(subParts.join(''));
     });
+
+    // Add a message if the user has Curve tokens in their wallet but not on Convex
+    if (nYetToDeposit) {
+        parts.push(
+            `\nYou also have ${nYetToDeposit} Curve token${nYetToDeposit > 1 ? 's' : ''} in your wallet that you could deposit on Convex: ${poolsAndVaultsWithCurveBalanceSummary}`,
+        );
+    }
 
     return toResult(parts.join('\n'));
 }

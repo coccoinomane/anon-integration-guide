@@ -35,8 +35,10 @@ export type ConvexTokenBalances = {
     usdStaked?: number; // USD value of the staked amount
     unstaked: bigint; // Amount of deposit tokens in wallet (not staked)
     usdUnstaked?: number; // USD value of the unstaked amount
-    total: bigint; // Total Convex LP or LV token exposure
-    usdTotal?: number; // USD value of the total amount
+    total: bigint; // Staked + unstaked amount
+    usdTotal?: number; // USD value of the staked + unstaked amount
+    underlying: bigint; // Amount of underlying Curve LP or Vault tokens in wallet
+    usdUnderlying?: number; // USD value of the underlying amount
 };
 
 /**
@@ -50,6 +52,7 @@ export type EnrichedConvexToken = {
     type: 'LP' | 'LV';
     typeLabel: 'Liquidity Pool' | 'Lending Vault';
     typeLabelShort: 'pool' | 'vault';
+    tokensLabel: 'LP tokens' | 'vault tokens';
     id: number;
     isBrokenOrShutdownOrKilled: boolean;
     uiName: string;
@@ -114,6 +117,7 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
         type,
         typeLabel: type === 'LP' ? 'Liquidity Pool' : 'Lending Vault',
         typeLabelShort: type === 'LP' ? 'pool' : 'vault',
+        tokensLabel: type === 'LP' ? 'LP tokens' : 'vault tokens',
         id: obj.convexPoolData.id,
         isBrokenOrShutdownOrKilled,
         uiName: isPool(obj) ? getConvexLpTokenUiName(obj) : getConvexLvTokenUiName(obj),
@@ -216,8 +220,11 @@ export async function fetchConvexTokenBalances(
     account: `0x${string}`,
     getUsdValues: boolean = true,
 ): Promise<ConvexTokenBalances> {
+    // Underlying Curve LP or Vault tokens in wallet
+    const underlyingAddress = isPool(poolOrVault) ? poolOrVault.lpTokenAddress : poolOrVault.address;
+
     // Get both balances in parallel using multicall for efficiency
-    const [stakedBalance, unstakedBalance] = await provider.multicall({
+    const [stakedBalance, unstakedBalance, underlyingBalance] = await provider.multicall({
         contracts: [
             {
                 address: poolOrVault.convexPoolData.crvRewards,
@@ -231,21 +238,29 @@ export async function fetchConvexTokenBalances(
                 functionName: 'balanceOf',
                 args: [account],
             },
+            {
+                address: underlyingAddress,
+                abi: erc20Abi,
+                functionName: 'balanceOf',
+                args: [account],
+            },
         ],
     });
 
-    if (stakedBalance.status !== 'success' || unstakedBalance.status !== 'success') {
+    if (stakedBalance.status !== 'success' || unstakedBalance.status !== 'success' || underlyingBalance.status !== 'success') {
         throw new Error('Could not fetch Convex token balances');
     }
 
     const staked = stakedBalance.result;
     const unstaked = unstakedBalance.result;
     const total = staked + unstaked;
+    const underlying = underlyingBalance.result;
 
     const balances: ConvexTokenBalances = {
         staked,
         unstaked,
         total,
+        underlying,
     };
 
     // Calculate USD values if requested
@@ -255,6 +270,7 @@ export async function fetchConvexTokenBalances(
         balances.usdStaked = Number(formatUnits(staked, d)) * usdPrice;
         balances.usdUnstaked = Number(formatUnits(unstaked, d)) * usdPrice;
         balances.usdTotal = balances.usdStaked + balances.usdUnstaked;
+        balances.usdUnderlying = Number(formatUnits(underlying, d)) * usdPrice;
     }
 
     return balances;
@@ -279,7 +295,7 @@ export async function fetchMultipleConvexTokenBalances(
         return new Map();
     }
 
-    // Build contracts array: for each pool/vault we need 2 calls (staked + unstaked)
+    // Build contracts array: for each pool/vault we need 3 calls (staked + unstaked + underlying)
     const contracts = poolsAndVaults.flatMap((poolOrVault) => [
         {
             address: poolOrVault.convexPoolData.crvRewards,
@@ -289,6 +305,12 @@ export async function fetchMultipleConvexTokenBalances(
         } as const,
         {
             address: poolOrVault.convexPoolData.token,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [account],
+        } as const,
+        {
+            address: isPool(poolOrVault) ? poolOrVault.lpTokenAddress : poolOrVault.address,
             abi: erc20Abi,
             functionName: 'balanceOf',
             args: [account],
@@ -312,11 +334,12 @@ export async function fetchMultipleConvexTokenBalances(
 
     for (let i = 0; i < poolsAndVaults.length; i++) {
         const poolOrVault = poolsAndVaults[i];
-        const stakedResult = results[i * 2];
-        const unstakedResult = results[i * 2 + 1];
+        const stakedResult = results[i * 3];
+        const unstakedResult = results[i * 3 + 1];
+        const underlyingResult = results[i * 3 + 2];
 
         // Skip this pool/vault if either call failed
-        if (stakedResult.status !== 'success' || unstakedResult.status !== 'success') {
+        if (stakedResult.status !== 'success' || unstakedResult.status !== 'success' || underlyingResult.status !== 'success') {
             console.warn(`Failed to fetch balances for Convex pool ID ${poolOrVault.convexPoolData.id}`);
             continue;
         }
@@ -324,11 +347,13 @@ export async function fetchMultipleConvexTokenBalances(
         const staked = stakedResult.result;
         const unstaked = unstakedResult.result;
         const total = staked + unstaked;
+        const underlying = underlyingResult.result;
 
         const balances: ConvexTokenBalances = {
             staked,
             unstaked,
             total,
+            underlying,
         };
 
         // Calculate USD values if requested
@@ -338,6 +363,7 @@ export async function fetchMultipleConvexTokenBalances(
             balances.usdStaked = Number(formatUnits(staked, d)) * usdPrice;
             balances.usdUnstaked = Number(formatUnits(unstaked, d)) * usdPrice;
             balances.usdTotal = balances.usdStaked + balances.usdUnstaked;
+            balances.usdUnderlying = Number(formatUnits(underlying, d)) * usdPrice;
         }
 
         balancesMap.set(poolOrVault.convexPoolData.id, balances);
@@ -348,7 +374,7 @@ export async function fetchMultipleConvexTokenBalances(
 
 /**
  * Return a multiple line string with all data for the given
- * Convex token
+ * Convex token, including the user's balances
  */
 export function formatConvexToken(ct: EnrichedConvexToken): string {
     let parts: string[] = [];
@@ -356,7 +382,7 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
     if (ct.userBalances) {
         const d = CONVEX_TOKEN_DECIMALS;
         const subParts: string[] = [];
-        subParts.push(` - Your balance: ${formatUnits(ct.userBalances.total, d)} ${ct.typeLabelShort} tokens`);
+        subParts.push(` - Your balance on Convex: ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel}`);
         if (ct.userBalances.usdTotal) {
             subParts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
         }
@@ -368,6 +394,12 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
             subParts.push(` is unstaked`);
         }
         parts.push(subParts.join(''));
+        if (ct.userBalances.underlying) {
+            parts.push(` - You can still deposit on Convex: ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel}`);
+            if (ct.userBalances.usdUnderlying) {
+                parts.push(` (${to$$$(ct.userBalances.usdUnderlying)})`);
+            }
+        }
     }
     parts.push(` - Total TVL: ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(` - Total APR: ${typeof ct.uiApr === 'number' && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
@@ -390,25 +422,33 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
 
 /**
  * Return a single line string with the most important data for the given
- * Convex token.
+ * Convex token, including the user's balances
  */
 export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
+    const d = CONVEX_TOKEN_DECIMALS;
     let parts: string[] = [];
     parts.push(`Convex ${ct.typeLabelShort} token ${ct.uiName}`);
-    parts.push(`with ID ${ct.id},`);
-    parts.push(`underlying ${ct.typeLabelShort} on Curve "${ct.curveName}",`);
-    parts.push(`TVL ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
+    parts.push(` with ID ${ct.id},`);
+    parts.push(` underlying ${ct.typeLabelShort} on Curve "${ct.curveName}",`);
+    parts.push(` TVL ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(`, Total APR: ${ct.uiApr && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
     if (ct.userBalances) {
-        parts.push(`- you own ${formatUnits(ct.userBalances.total, CONVEX_TOKEN_DECIMALS)}`);
-        if (ct.userBalances.usdTotal) {
-            parts.push(`(${to$$$(ct.userBalances.usdTotal)})`);
+        if (ct.userBalances.total > 0n) {
+            parts.push(` - you have ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel} on Convex`);
+            if (ct.userBalances.usdTotal) {
+                parts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
+            }
+            if (ct.userBalances.underlying > 0n) {
+                parts.push(` and you can deposit ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} more`);
+            }
+        } else if (ct.userBalances.underlying > 0n) {
+            parts.push(` - you can deposit ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} on Convex`);
         }
     }
     if (ct.isBrokenOrShutdownOrKilled) {
-        parts.push(`⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
+        parts.push(` ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
-    return parts.filter(Boolean).join(' ');
+    return parts.filter(Boolean).join('');
 }
 
 /**

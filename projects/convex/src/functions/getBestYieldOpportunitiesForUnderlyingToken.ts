@@ -11,7 +11,7 @@ interface Props {
 
 export async function getBestYieldOpportunitiesForUnderlyingToken(
     { chainName, tokenSymbol, positionTypes }: Props,
-    { evm: { getProvider } }: FunctionOptions,
+    { evm: { getProvider, getAddress } }: FunctionOptions,
 ): Promise<FunctionReturn> {
     // Validate and sanitize the position types
     let types = positionTypes ?? ['LP', 'LV'];
@@ -29,6 +29,7 @@ export async function getBestYieldOpportunitiesForUnderlyingToken(
     if (!supportedChains.includes(chainId)) return toResult(`Unsupported chain: ${chainName}`, true);
 
     // Get clients
+    const account = await getAddress();
     const provider = getProvider(chainId);
     const client = new ConvexCurveClient();
 
@@ -78,7 +79,7 @@ export async function getBestYieldOpportunitiesForUnderlyingToken(
     // Enrich the opportunities
     const enrichedOpportunities: EnrichedConvexToken[] = [];
     for (const poolOrVault of firstNOpportunities) {
-        const enriched = await enrichConvexToken(poolOrVault, provider, apys[poolOrVault.id], undefined);
+        const enriched = await enrichConvexToken(poolOrVault, provider, apys[poolOrVault.id], account);
         enrichedOpportunities.push(enriched);
     }
 

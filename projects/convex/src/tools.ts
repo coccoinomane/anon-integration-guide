@@ -104,10 +104,10 @@ export const tools = [
             name: 'getMyPositionsPortfolio',
             description: [
                 [
-                    `Show the top ${N_MAX_RESULTS_IN_PORTFOLIO} positions in the user's portfolio on the given chain, including Convex Liquidity Pools (LP) tokens and Convex Lending Vaults (LV) tokens;`,
+                    `Show the top ${N_MAX_RESULTS_IN_PORTFOLIO} positions in the user's portfolio on the given chain: Convex Liquidity Pools (LP) tokens and Convex Lending Vaults (LV) tokens.`,
+                    `Importantly, this tool will also include the list of Curve LP and LV tokens that the user has in their wallet but has not yet deposited on Convex.`,
                     `For each position, shows the token balance, dollar value and yield (APR).`,
                     `The total portfolio value (TVL) across all positions is also shown.`,
-                    `Optionally, select which types of positions to show using the 'positionTypes' parameter; default is all types (LP and LV).`,
                 ].join('\n'),
             ].join('\n'),
             strict: true,

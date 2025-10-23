@@ -292,7 +292,7 @@ export async function agent({ action, debugLlm, debugTools, debugViem, rpc, noti
     }
 
     // Optionally add the final comment of the assistant
-    if (assistantFinalComment && debugLlm) {
+    if (assistantFinalComment) {
         combinedMessage += `\n${chalk.underline.bold('ASSISTANT FINAL COMMENT')}\n${assistantFinalComment}`;
     }
 
