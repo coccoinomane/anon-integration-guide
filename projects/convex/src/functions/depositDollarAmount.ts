@@ -21,6 +21,11 @@ interface Props {
  * tokens to deposit based on the current token price, then deposit and stake
  * them in the rewards contract to earn CRV, CVX, and other rewards.
  *
+ * Please note that:
+ * - The deposited tokens are automatically staked in the rewards contract
+ *   to earn CRV, CVX, and other rewards.
+ * - This function does NOT make any calls to Convex or Curve API.
+ *
  * Docs: https://docs.convexfinance.com/convexfinanceintegration/booster
  *
  * @param {Object} props - The function input parameters

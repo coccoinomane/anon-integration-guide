@@ -6,13 +6,12 @@
 
 ## Minor
 
-- In deposit tools:
-    - check depositing vault
-    - maybe show URL to Curve pool/lending vault if not enough tokens?
-- In `getConvexLiquidityPool` and `getConvexLendingVault`:
-    - Add if there are claimable rewards (https://d.pr/i/IUQMoB)
+- Deposit/withdraw should work also with deposited tokens, not just deposited+staked tokens
+- In deposit tools, show URL to Curve pool/lending vault if not enough tokens?
+- In `getConvexLiquidityPool` and `getConvexLendingVault`, specify if there are claimable rewards (https://d.pr/i/IUQMoB)
+- In `getConvexLiquidityPool`, fix the issue whereby "cvxCRV-CRV" and "cvxCRV+CRV" are not found. Could be solved by searching by coins ([coin1, coin2, ...]) instead of UI name.
 - Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
 - How to check CRV and CVX staking APR > https://discord.com/channels/820795644494610432/864157305566527508/1154349279763234868
-- Add docstring for functions
+- Add docstrings to functions
 
 ## Future

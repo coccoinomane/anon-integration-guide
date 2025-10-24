@@ -1,9 +1,18 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { CONVEX_TOKEN_DECIMALS, N_MAX_RESULTS_IN_PORTFOLIO, MIN_TVL, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { ConvexTokenBalances, enrichConvexToken, EnrichedConvexToken, fetchMultipleConvexTokenBalances, isPool, shouldIncludePosition } from '../helpers/lps';
+import {
+    ConvexTokenBalances,
+    enrichConvexToken,
+    EnrichedConvexToken,
+    fetchMultipleConvexTokenBalances,
+    getConvexLpTokenUiName,
+    isPool,
+    shouldIncludePosition,
+} from '../helpers/lps';
 import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
+import { getConvexLvTokenUiName } from '../helpers/vaults';
 
 interface Props {
     chainName: string;
@@ -70,24 +79,33 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     const firstNPoolsAndVaultsWithCurveBalance = poolsAndVaultsWithCurveBalance.slice(0, N_MAX_RESULTS_IN_PORTFOLIO);
 
     // String with list of yet-to-deposit Curve tokens
-    let poolsAndVaultsWithCurveBalanceSummary = firstNPoolsAndVaultsWithCurveBalance.reduce((acc, p) => {
+    let summaryParts: string[] = [];
+    for (const p of firstNPoolsAndVaultsWithCurveBalance) {
         const balance = balancesMap.get(p.convexPoolData.id) as ConvexTokenBalances;
-        acc += `\n - Curve ${isPool(p) ? 'LP' : 'vault'} "${p.name}" with ID ${p.convexPoolData.id}: ${formatUnits(balance.underlying, d)} ${isPool(p) ? 'LP' : 'vault'} tokens${balance.usdUnderlying ? ` worth ${to$$$(balance.usdUnderlying)}` : ''}`;
-        return acc;
-    }, '' as string);
+        let subParts: string[] = [];
+        subParts.push(`You can deposit`);
+        subParts.push(` ${formatUnits(balance.underlying, d)} ${isPool(p) ? 'LP' : 'vault'} tokens`);
+        if (balance.usdUnderlying) {
+            subParts.push(` worth ${to$$$(balance.usdUnderlying)}`);
+        }
+        subParts.push(` in Convex ${isPool(p) ? `pool "${getConvexLpTokenUiName(p)}"` : `vault "${getConvexLvTokenUiName(p)}"`}`);
+        subParts.push(` with ID ${p.convexPoolData.id}`);
+        summaryParts.push(subParts.filter(Boolean).join(''));
+    }
 
     // We will show only a subset to avoid wasting tokens
     const nYetToDeposit = poolsAndVaultsWithCurveBalance.length;
     if (nYetToDeposit > N_MAX_RESULTS_IN_PORTFOLIO) {
-        poolsAndVaultsWithCurveBalanceSummary += `\n - ... and ${nYetToDeposit - N_MAX_RESULTS_IN_PORTFOLIO} more`;
+        summaryParts.push(`... and ${nYetToDeposit - N_MAX_RESULTS_IN_PORTFOLIO} more`);
     }
+    const poolsAndVaultsWithCurveBalanceSummary = '\n - ' + summaryParts.join('\n - ');
 
     // If no positions found, return early
     if (poolsAndVaultsWithBalance.length === 0) {
         let msg = `You do not seem to have active positions on Convex ${chainName} chain`;
         // Add a message if the user has Curve tokens in their wallet but not on Convex
         if (nYetToDeposit) {
-            msg += `. However, you do have ${nYetToDeposit} Curve token${nYetToDeposit > 1 ? 's' : ''} in your wallet that you could deposit on Convex: ${poolsAndVaultsWithCurveBalanceSummary}`;
+            msg += `. However, you do have Curve token${nYetToDeposit > 1 ? 's' : ''} in your wallet that you could deposit on Convex: ${poolsAndVaultsWithCurveBalanceSummary}`;
         }
         return toResult(msg);
     }
@@ -149,9 +167,7 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
 
     // Add a message if the user has Curve tokens in their wallet but not on Convex
     if (nYetToDeposit) {
-        parts.push(
-            `\nYou also have ${nYetToDeposit} Curve token${nYetToDeposit > 1 ? 's' : ''} in your wallet that you could deposit on Convex: ${poolsAndVaultsWithCurveBalanceSummary}`,
-        );
+        parts.push(`\nYou also have Curve tokens in your wallet that you could deposit on Convex: ${poolsAndVaultsWithCurveBalanceSummary}`);
     }
 
     return toResult(parts.join('\n'));

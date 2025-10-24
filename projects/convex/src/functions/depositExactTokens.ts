@@ -12,8 +12,12 @@ interface Props {
  * Deposit and stake on Convex the specified amount of Curve LP or
  * vault tokens
  *
- * The tokens are automatically staked in the rewards contract
- * to earn CRV, CVX, and other rewards.
+ * Please note that:
+ * - The deposited tokens are automatically staked in the rewards contract
+ *   to earn CRV, CVX, and other rewards.
+ * - This function does NOT make any calls to Convex or Curve API.
+ *
+ * Docs: https://docs.convexfinance.com/convexfinanceintegration/booster
  */
 export async function depositExactTokens({ chainName, convexTokenId, amount }: Props, options: FunctionOptions): Promise<FunctionReturn> {
     // Validate chain

@@ -44,7 +44,7 @@ Please note that the portfolio tool will also surface Curve LP tokens that are n
 - APY of the Convex FRAX+USDe pool on Ethereum on Convex
 - Am I better off lending my WETH or LPing it on Convex on Ethereum?
 
-### Deposit & withdraw
+### Deposit Curve tokens into Convex
 
 - Deposit all of my USDC-USDT liquidity on Convex on Ethereum
 - Deposit 50% of my ETH-stETH liquidity on Convex on Ethereum
@@ -53,6 +53,18 @@ Please note that the portfolio tool will also surface Curve LP tokens that are n
 - Deposit my Curve sreUSD lending position on Convex
 
 Please note that the tool will deposit & stake the tokens in one transaction.
+
+### Withdraw Curve tokens from Convex
+
+- Withdraw all of my liquidity from ETH-stETH Convex pool on Ethereum
+- Withdraw half of my liquidity from ETH-stETH Convex pool on Ethereum
+- Withdraw my sreUSD lending position from Convex
+
+Please note that:
+
+- The tool will unstake & withdraw the tokens in one transaction.
+- TODO: The percentage refers to the staked amount. If the tool detects tokens that are deposited in Convex but not staked, it will ask the user if they want to withdraw them too.
+- Any existing rewards will be claimed too.
 
 ## Claim rewards
 

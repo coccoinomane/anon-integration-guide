@@ -12,11 +12,16 @@ interface Props {
 }
 
 /**
- * Deposit a percentage of the user's Curve LP tokens into a Convex pool or vault
- * and automatically stake them to earn rewards.
+ * Deposit a percentage of the user's Curve LP tokens into a Convex pool
+ * or vault and automatically stake them to earn rewards.
  *
- * This is useful for commands like "Deposit half of my LP tokens" or "Deposit 25%
- * of my tokens into Convex pool 25".
+ * This is useful for commands like "Deposit half of my Curve liquidity
+ * into Convex pool 41".
+ *
+ * Please note that:
+ * - The deposited tokens are automatically staked in the rewards contract
+ *   to earn CRV, CVX, and other rewards.
+ * - This function does NOT make any calls to Convex or Curve API.
  *
  * Docs: https://docs.convexfinance.com/convexfinanceintegration/booster
  *
@@ -42,11 +47,8 @@ export async function depositFractionOfTokens({ chainName, convexTokenId, percen
     const provider = getProvider(chainId);
 
     // Validate percentage
-    if (percentage < 0 || percentage > 100) {
-        return toResult(`Percentage must be between 0 and 100`, true);
-    }
-    if (percentage === 0) {
-        return toResult('Cannot deposit 0% of tokens', true);
+    if (percentage <= 0 || percentage > 100) {
+        return toResult(`Percentage must be greater than 0 and at most 100`, true);
     }
 
     // Get pool info

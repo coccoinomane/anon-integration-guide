@@ -102,6 +102,38 @@ export const tools = [
     {
         type: 'function',
         function: {
+            name: 'withdraw',
+            description: [
+                "Withdraw a percentage of the user's deposited tokens from Convex.  Omit the removal percentage to withdraw all of the user's tokens.",
+                "Use the `getMyPositionsPortfolio` tool to check the user's overall positions before withdrawing any tokens.",
+                'If more than one pool/vault with the same name exists, and only one of them has a balance, withdraw from that one. If none of them or both of them have a balance, you MUST ask the user to specify which exact pool/vault they want to withdraw from.',
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(EVM.utils.getChainName),
+                        description: 'Chain name',
+                    },
+                    convexTokenId: {
+                        type: 'number',
+                        description: 'The numeric ID of the Convex pool or vault to withdraw from',
+                    },
+                    removalPercentage: {
+                        type: ['number', 'null'],
+                        description: 'Percent of liquidity to remove, expressed as a number (e.g. 50 for 50%). If null, all of the user liquidity will be removed.',
+                    },
+                },
+                required: ['chainName', 'convexTokenId', 'removalPercentage'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'getMyPositionsPortfolio',
             description: [
                 [

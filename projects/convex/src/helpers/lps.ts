@@ -157,7 +157,7 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
     }
     // Compute full user balances if we have an account
     if (account) {
-        result.userBalances = await fetchConvexTokenBalances(provider, obj, account, true);
+        result.userBalances = await fetchConvexTokenBalancesFromApiObject(provider, obj, account, true);
     }
     return result;
 }
@@ -207,14 +207,66 @@ export function calculateTokenUsdPrice(poolOrVault: Pool | LendingVault): number
  * e.g. https://d.pr/i/WoXJrD
  */
 export function getConvexLpTokenUiName(pool: Pool): string {
+    console.log(pool.coins.map((coin) => coin.symbol).join('+'));
     return pool.coins.map((coin) => coin.symbol).join('+');
 }
 
 /**
- * Gets from the blockchain the staked and unstaked Convex LP or
- * LV token amounts for a user in a specific Convex pool
+ * Given the output of the poolInfo method on the Booster smart
+ * contract, return the balance of the user for the pool (or vault).
  */
-export async function fetchConvexTokenBalances(
+export async function fetchConvexTokenBalances(provider: PublicClient, poolInfo: BoosterPoolInfo, account: `0x${string}`): Promise<ConvexTokenBalances> {
+    // Get the balances in parallel using multicall for efficiency
+    const [stakedBalance, unstakedBalance, underlyingBalance] = await provider.multicall({
+        contracts: [
+            {
+                address: poolInfo.crvRewards,
+                abi: erc20Abi,
+                functionName: 'balanceOf',
+                args: [account],
+            },
+            {
+                address: poolInfo.token,
+                abi: erc20Abi,
+                functionName: 'balanceOf',
+                args: [account],
+            },
+            {
+                address: poolInfo.lptoken,
+                abi: erc20Abi,
+                functionName: 'balanceOf',
+                args: [account],
+            },
+        ],
+    });
+
+    if (stakedBalance.status !== 'success' || unstakedBalance.status !== 'success' || underlyingBalance.status !== 'success') {
+        throw new Error('Could not fetch Convex token balances');
+    }
+
+    const staked = stakedBalance.result;
+    const unstaked = unstakedBalance.result;
+    const total = staked + unstaked;
+    const underlying = underlyingBalance.result;
+
+    return {
+        staked,
+        unstaked,
+        total,
+        underlying,
+    };
+}
+
+/**
+ * Given a pool or lending vault object, return the balance of the user
+ * for that pool or lending vault; includes USD values if requested.
+ *
+ * The balance will include:
+ * - staked amount in Convex
+ * - unstaked amount in Convex
+ * - underlying amount in Curve token
+ */
+export async function fetchConvexTokenBalancesFromApiObject(
     provider: PublicClient,
     poolOrVault: Pool | LendingVault,
     account: `0x${string}`,
@@ -280,7 +332,7 @@ export async function fetchConvexTokenBalances(
  * Fetches balances for multiple pools and vaults in batched multicalls.
  * Returns a Map indexed by the Convex pool ID for easy lookup.
  *
- * This is much more efficient than calling fetchConvexTokenBalances in a loop
+ * This is much more efficient than calling fetchConvexTokenBalancesFromApiObject in a loop
  * when you need balances for many pools/vaults at once.
  *
  * The function automatically batches requests to avoid RPC provider limits.

@@ -37,7 +37,7 @@ export async function buildDepositExactTokensTransactions(
     { notify }: FunctionOptions,
 ): Promise<[EVM.types.TransactionParams[], BoosterPoolInfo]> {
     // Fetch pool/vault info from Booster contract
-    await notify(`Fetching pool info from Booster contract...`);
+    await notify(`Fetching info from Convex...`);
     const poolInfo = await fetchBoosterPoolInfo(provider, convexTokenId);
 
     // Check if pool/vault is shutdown
