@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { supportedChains } from '../constants';
 import { ConvexCurveClient } from '../client';
-import { formatConvexToken, formatConvexTokenShort, getConvexLpTokenUiName, enrichConvexToken } from '../helpers/lps';
+import { formatConvexToken, formatConvexTokenShort, getConvexLpTokenUiName, enrichConvexToken } from '../helpers/poolAndVaults';
 
 interface Props {
     chainName: string;

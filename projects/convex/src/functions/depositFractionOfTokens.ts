@@ -3,7 +3,7 @@ import { supportedChains, CONVEX_TOKEN_DECIMALS } from '../constants';
 import { buildDepositExactTokensTransactions } from '../helpers/deposit';
 import { erc20Abi, formatUnits } from 'viem';
 import { toHumanReadableAmount } from '../helpers/format';
-import { BoosterPoolInfo, fetchBoosterPoolInfo } from '../helpers/lps';
+import { BoosterPoolInfo, fetchBoosterPoolInfo } from '../helpers/booster';
 
 interface Props {
     chainName: string;

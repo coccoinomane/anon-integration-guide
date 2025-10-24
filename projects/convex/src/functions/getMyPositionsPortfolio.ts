@@ -5,14 +5,14 @@ import {
     ConvexTokenBalances,
     enrichConvexToken,
     EnrichedConvexToken,
-    fetchMultipleConvexTokenBalances,
     getConvexLpTokenUiName,
+    getConvexLvTokenUiName,
     isPool,
     shouldIncludePosition,
-} from '../helpers/lps';
+} from '../helpers/poolAndVaults';
 import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
-import { getConvexLvTokenUiName } from '../helpers/vaults';
+import { fetchMultipleConvexTokenBalances } from '../helpers/balances';
 
 interface Props {
     chainName: string;

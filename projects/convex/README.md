@@ -13,7 +13,7 @@ More information on Convex Finance can be found on their own academy page: https
 
 ## Worth noting
 
-- Computing accurate APYs was the trickiest part, as I had to do some on-chain computation; for more details see:
+- Computing accurate APYs was tricky, for more details see:
     - https://discord.com/channels/820795644494610432/864157305566527508/1428627572274630727
     - https://docs.convexfinance.com/convexfinanceintegration/cvx-minting
     - https://etherscan.io/address/0x5Fba69a794F395184b5760DAf1134028608e5Cd1#readContract
@@ -80,6 +80,20 @@ Please note that:
 - TODO: Convert and stake my CRV on Convex
 - TODO: Stake and lock 100 CVX on Convex
 - TODO: Give me APY of Convex CRV staking on Ethereum
+
+## Convex protocol KB
+
+- A Convex LP token is a deposit/receipt token that the user receives in exchange for depositing Curve liquidity on Convex
+- After obtaining a Convex LP token, it can then be further staked on Convex to earn boosted CRV and (sometimes) CVX rewards; this
+  is the whole point of it.
+- One can also deposit & stake Curve lending positions (a.k.a. Llamalend lending vaults). Again, after depositing the Curve lending vault token one obtains from Convex a receipt token.
+- In summary:
+    - you deposit Curve LP tokens to obtain Convex LP tokens
+    - you deposit Curve/Llamalend lending vault tokens to obtain Convex LV tokens
+    - you stake Convex LP or LV tokens to earn boosted CRV and (sometimes) CVX rewards
+- At the smart contract level, Convex does not make a difference between LP and lending vault tokens. They are just positions that can earn rewards. Both belong to the same entity and are indexed by the same sequential pool ID (\_pid); see [Convex (very terse) docs](https://docs.convexfinance.com/convexfinanceintegration/booster) for more details.
+- To obtain a lending position suitable for being deposited on Curve, the user has to deposit their crvUSD tokens in a Llamalend vault (e.g. https://www.curve.finance/lend/ethereum/markets/one-way-market-12/vault/deposit).
+- Each Llamalend vault has a specific collateral (e.g. WETH) hence Convex LV tokens shown on Convex UI always contain a token name (screenshot > https://d.pr/i/DpYS2p)
 
 ## Test with the local agent
 

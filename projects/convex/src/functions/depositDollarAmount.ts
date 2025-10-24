@@ -2,7 +2,7 @@ import { FunctionReturn, FunctionOptions, toResult, EVM, EvmChain } from '@heyan
 import { CONVEX_TOKEN_DECIMALS, supportedChains } from '../constants';
 import { buildDepositExactTokensTransactions } from '../helpers/deposit';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { calculateTokenUsdPrice } from '../helpers/lps';
+import { calculateTokenUsdPrice } from '../helpers/poolAndVaults';
 import { to$$$ } from '../helpers/format';
 import Big from 'big.js';
 

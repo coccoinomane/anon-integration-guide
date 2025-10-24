@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { MIN_TVL, N_MAX_RESULTS_IN_BEST_YIELD, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
-import { enrichConvexToken, EnrichedConvexToken, formatConvexTokenShort, isPool, shouldIncludePosition } from '../helpers/lps';
+import { enrichConvexToken, EnrichedConvexToken, formatConvexTokenShort, isPool, shouldIncludePosition } from '../helpers/poolAndVaults';
 
 interface Props {
     chainName: string;

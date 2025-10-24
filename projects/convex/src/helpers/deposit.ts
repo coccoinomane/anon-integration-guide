@@ -2,7 +2,7 @@ import { encodeFunctionData, parseUnits, erc20Abi, formatUnits, PublicClient } f
 import { FunctionOptions, EVM } from '@heyanon/sdk';
 import { boosterAbi } from '../abis';
 import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_TOKEN_DECIMALS } from '../constants';
-import { BoosterPoolInfo, fetchBoosterPoolInfo } from './lps';
+import { BoosterPoolInfo, fetchBoosterPoolInfo } from './booster';
 
 /**
  * Build the transactions to deposit the specified amount of Curve LP or

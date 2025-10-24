@@ -1,10 +1,11 @@
 import { FunctionReturn, FunctionOptions, toResult, EVM, EvmChain } from '@heyanon/sdk';
 import { formatUnits, encodeFunctionData } from 'viem';
 import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_TOKEN_DECIMALS as d, supportedChains } from '../constants';
-import { BoosterPoolInfo, fetchBoosterPoolInfo, fetchConvexTokenBalances } from '../helpers/lps';
+import { BoosterPoolInfo, fetchBoosterPoolInfo } from '../helpers/booster';
 import { toHumanReadableAmount } from '../helpers/format';
 import { baseRewardPoolAbi } from '../abis/baseRewardPoolAbi';
 import { boosterAbi } from '../abis';
+import { fetchConvexTokenBalances } from '../helpers/balances';
 
 interface Props {
     chainName: string;
