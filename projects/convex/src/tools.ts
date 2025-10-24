@@ -125,8 +125,12 @@ export const tools = [
                         type: ['number', 'null'],
                         description: 'Percent of liquidity to remove, expressed as a number (e.g. 50 for 50%). If null, all of the user liquidity will be removed.',
                     },
+                    withdrawUnstaked: {
+                        type: ['boolean', 'null'],
+                        description: 'Whether to withdraw unstaked tokens.  Default is false, which means that only staked tokens will be withdrawn.',
+                    },
                 },
-                required: ['chainName', 'convexTokenId', 'removalPercentage'],
+                required: ['chainName', 'convexTokenId', 'removalPercentage', 'withdrawUnstaked'],
                 additionalProperties: false,
             },
         },

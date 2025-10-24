@@ -59,12 +59,13 @@ Please note that the tool will deposit & stake the tokens in one transaction.
 - Withdraw all of my liquidity from ETH-stETH Convex pool on Ethereum
 - Withdraw half of my liquidity from ETH-stETH Convex pool on Ethereum
 - Withdraw my sreUSD lending position from Convex
+- Withdraw only my unstaked tokens from ETH-stETH Convex pool on Ethereum
 
 Please note that:
 
 - The tool will unstake & withdraw the tokens in one transaction.
-- TODO: The percentage refers to the staked amount. If the tool detects tokens that are deposited in Convex but not staked, it will ask the user if they want to withdraw them too.
 - Any existing rewards will be claimed too.
+- By default, the percentage refers to the staked amount of tokens. However, if the tool detects unstaked tokens as well, it will ask the user if they want to withdraw them too.
 
 ## Claim rewards
 

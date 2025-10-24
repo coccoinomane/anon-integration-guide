@@ -207,7 +207,6 @@ export function calculateTokenUsdPrice(poolOrVault: Pool | LendingVault): number
  * e.g. https://d.pr/i/WoXJrD
  */
 export function getConvexLpTokenUiName(pool: Pool): string {
-    console.log(pool.coins.map((coin) => coin.symbol).join('+'));
     return pool.coins.map((coin) => coin.symbol).join('+');
 }
 

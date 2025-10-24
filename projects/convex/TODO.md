@@ -6,7 +6,7 @@
 
 ## Minor
 
-- Deposit/withdraw should work also with deposited tokens, not just deposited+staked tokens
+- Deposit should work also with deposited tokens, not just deposited+staked tokens
 - In deposit tools, show URL to Curve pool/lending vault if not enough tokens?
 - In `getConvexLiquidityPool` and `getConvexLendingVault`, specify if there are claimable rewards (https://d.pr/i/IUQMoB)
 - In `getConvexLiquidityPool`, fix the issue whereby "cvxCRV-CRV" and "cvxCRV+CRV" are not found. Could be solved by searching by coins ([coin1, coin2, ...]) instead of UI name.
