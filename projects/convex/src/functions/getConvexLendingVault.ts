@@ -1,7 +1,7 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { supportedChains } from '../constants';
 import { ConvexCurveClient } from '../client';
-import { enrichConvexToken, formatConvexToken, formatConvexTokenShort } from '../helpers/lps';
+import { enrichConvexToken, formatConvexToken, getConvexTokenUiName, isPoolOrVaultInactive } from '../helpers/lps';
 
 interface Props {
     chainName: string;
@@ -25,18 +25,19 @@ export async function getConvexLendingVault({ chainName, convexLvIdOrName }: Pro
     // First attempt to match by ID
     let vault = vaults.find((vault) => vault.convexPoolData.id.toString() === convexLvIdOrName);
 
-    // If not found, match by collateral name
-    // In case of multiple matches, show the user the options and ask them
-    // to disambiguate
+    // If not found, match by collateral name, excluding inactive vaults
     if (!vault) {
-        const matchingVaults = vaults.filter((vault) => vault.assets.collateral.symbol.toLowerCase() === convexLvIdOrName.toLowerCase());
+        const matchingVaults = vaults.filter((vault) => vault.assets.collateral.symbol.toLowerCase() === convexLvIdOrName.toLowerCase() && !isPoolOrVaultInactive(vault));
+        // In case of multiple matches, show the user the options
+        // and ask them to disambiguate
         if (matchingVaults.length > 1) {
             const apys = await client.apys(chainName);
             let parts: string[] = [];
             parts.push(`Found ${matchingVaults.length} matches for the query "${convexLvIdOrName}":`);
             for (const vault of matchingVaults) {
                 const enrichedVault = await enrichConvexToken(vault, provider, apys[vault.id], account);
-                parts.push(` - ${formatConvexTokenShort(enrichedVault)}`);
+                parts.push(`VAULT "${getConvexTokenUiName(vault)}":`);
+                parts.push(formatConvexToken(enrichedVault, false));
             }
             let message = parts.join('\n');
             return toResult(message); // not an error, let the LLM decide what to do
@@ -47,9 +48,9 @@ export async function getConvexLendingVault({ chainName, convexLvIdOrName }: Pro
     // Nothing found...
     if (!vault) {
         if (parseInt(convexLvIdOrName)) {
-            return toResult(`No Convex LV token found with ID ${convexLvIdOrName} on ${chainName} chain.\n`);
+            return toResult(`No Convex Lending Vault token found with ID ${convexLvIdOrName} on ${chainName} chain.\n`);
         } else {
-            let message = `No Convex LV token found with collateral name '${convexLvIdOrName}' on ${chainName} chain.\n`;
+            let message = `No active Convex Lending Vault token found with collateral name '${convexLvIdOrName}' on ${chainName} chain.\n`;
             return toResult(message);
         }
     }

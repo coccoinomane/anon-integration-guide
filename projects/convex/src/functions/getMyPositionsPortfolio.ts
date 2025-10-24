@@ -137,7 +137,10 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
     const nPositions = enrichedTokens.length;
     const firstNPositions = enrichedTokens.slice(0, N_MAX_RESULTS_IN_PORTFOLIO);
     const parts: string[] = [];
-    parts.push(`You have ${nPositions} position${nPositions > 1 ? 's' : ''} in your Convex Portfolio on ${chainName}, for a total value of ${to$$$(totalUsdValue)}`);
+    const typeSpecificier = types.length === 1 ? (types[0] === 'LP' ? 'Liquidity Pool ' : 'Lending Vault ') : '';
+    parts.push(
+        `You have ${nPositions} ${typeSpecificier}position${nPositions > 1 ? 's' : ''} in your Convex Portfolio on ${chainName}, for a total value of ${to$$$(totalUsdValue)}`,
+    );
     if (nPositions > N_MAX_RESULTS_IN_PORTFOLIO) {
         parts[parts.length - 1] += `. Showing only the top ${N_MAX_RESULTS_IN_PORTFOLIO} positions`;
     }

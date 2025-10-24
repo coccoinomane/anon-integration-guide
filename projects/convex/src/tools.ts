@@ -7,7 +7,7 @@ const { getChainName } = EVM.utils;
 const DEPOSIT_TOOLS_ADDENDUM = [
     'The act of depositing the Curve tokens will result in the creation of the same amount of Convex tokens; these will be automatically staked in the rewards contract to earn CRV, CVX, and other rewards.',
     'Use getConvexLiquidityPool or getConvexLendingVault first to find the Convex ID of the pool/vault token.',
-    'IMPORTANT: If multiple pools/vaults with the same name exist, you MUST ask the user to specify which exact pool/vault they want to deposit into. Do NOT automatically choose the first result.',
+    'IMPORTANT: If multiple pools/vaults with the same name exist, and the user has tokens to deposit only in one of them, deposit into that one. If none of them or multiple of them have a balance, you MUST ask the user to specify which exact pool/vault they want to deposit into.',
 ].join('\n');
 
 export const tools = [
@@ -104,9 +104,9 @@ export const tools = [
         function: {
             name: 'withdraw',
             description: [
-                "Withdraw a percentage of the user's deposited tokens from Convex.  Omit the removal percentage to withdraw all of the user's tokens.",
+                "Withdraw a percentage of the user's deposited tokens from Convex, thus converting them back to the underlying Curve tokens.",
                 "Use the `getMyPositionsPortfolio` tool to check the user's overall positions before withdrawing any tokens.",
-                'If more than one pool/vault with the same name exists, and only one of them has a balance, withdraw from that one. If none of them or both of them have a balance, you MUST ask the user to specify which exact pool/vault they want to withdraw from.',
+                'If more than one pool/vault with the same name exists, and only one of them has a balance, withdraw from that one. If none of them or multiple of them have a balance, you MUST ask the user to specify which exact pool/vault they want to withdraw from.',
             ].join('\n'),
             strict: true,
             parameters: {
@@ -142,7 +142,7 @@ export const tools = [
             description: [
                 [
                     `Show the top ${N_MAX_RESULTS_IN_PORTFOLIO} positions in the user's portfolio on the given chain: Convex Liquidity Pools (LP) tokens and Convex Lending Vaults (LV) tokens.`,
-                    `Importantly, this tool will also include the list of Curve LP and LV tokens that the user has in their wallet but has not yet deposited on Convex.`,
+                    `Importantly, this tool will also include any Curve token that the user has in their wallet but has not yet deposited on Convex.`,
                     `For each position, shows the token balance, dollar value and yield (APR).`,
                     `The total portfolio value (TVL) across all positions is also shown.`,
                 ].join('\n'),
@@ -181,6 +181,7 @@ export const tools = [
             description: [
                 `Show the top ${N_MAX_RESULTS_IN_BEST_YIELD} yield opportunities for the given underlying token on Convex, sorted by APR yield.`,
                 `The result will include both Convex Liquidity Pools (LP) and Convex Lending Vaults (LV).`,
+                `For each opportunity, also shows whether the user has any Curve tokens in their wallet that they could deposit on Convex.`,
                 `Will only include positions with a TVL of at least ${to$$$(MIN_TVL, 0, 0)} dollars.`,
             ].join('\n'),
             strict: true,
@@ -218,7 +219,9 @@ export const tools = [
             name: 'getConvexLiquidityPool',
             description: [
                 [
-                    'Find information about a specific Convex LP token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LP token. The result will include info on any user positions in the Convex LP token, including a breakdown of the earned APR yield.',
+                    'Find information about a specific LP token on Convex, searching by either its numeric ID or its UI name (as shown on the Convex website).',
+                    'The result will include: the balance of the user in the Convex LP token, a breakdown of the earned APR yield, and the underlying Curve tokens that the user can deposit on Convex to earn rewards.',
+                    'ALWAYS use this function to find the ID of a Convex LP token.',
                 ].join('\n'),
             ].join('\n'),
             strict: true,
@@ -247,7 +250,9 @@ export const tools = [
         function: {
             name: 'getConvexLendingVault',
             description: [
-                'Find information about a specific Convex Lending Vault (LV) token, searching by either its numeric ID or its UI name (as shown on the Convex website). ALWAYS use this function to find the ID of a Convex LV token. The result will include info on any user positions in the Convex LV token, including a breakdown of the earned APR yield.',
+                'Find information about a specific Lending Vault (LV) token on Convex, searching by either its numeric ID or its UI name (as shown on the Convex website).',
+                'The result will include: the balance of the user in the Convex LV token, a breakdown of the earned APR yield, and the underlying Curve tokens that the user can deposit on Convex to earn rewards.',
+                'ALWAYS use this function to find the ID of a Convex LV token.',
             ].join('\n'),
             strict: true,
             parameters: {

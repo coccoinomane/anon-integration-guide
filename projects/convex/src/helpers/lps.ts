@@ -211,6 +211,13 @@ export function getConvexLpTokenUiName(pool: Pool): string {
 }
 
 /**
+ * Name shown on the website UI for the given LP or LV token.
+ */
+export function getConvexTokenUiName(poolOrVault: Pool | LendingVault): string {
+    return isPool(poolOrVault) ? getConvexLpTokenUiName(poolOrVault) : getConvexLvTokenUiName(poolOrVault);
+}
+
+/**
  * Given the output of the poolInfo method on the Booster smart
  * contract, return the balance of the user for the pool (or vault).
  */
@@ -427,29 +434,41 @@ export async function fetchMultipleConvexTokenBalances(
  * Return a multiple line string with all data for the given
  * Convex token, including the user's balances
  */
-export function formatConvexToken(ct: EnrichedConvexToken): string {
+export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean = true): string {
     let parts: string[] = [];
-    parts.push(`Info on Convex ${ct.typeLabel} token "${ct.uiName}":`);
+    if (includeIntro) {
+        parts.push(`Info on Convex ${ct.typeLabel} token "${ct.uiName}":`);
+    }
     if (ct.userBalances) {
         const d = CONVEX_TOKEN_DECIMALS;
         const subParts: string[] = [];
-        subParts.push(` - Your balance on Convex: ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel}`);
+        if (ct.userBalances.total > 0n) {
+            subParts.push(` - You own ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel} on Convex`);
+        } else {
+            subParts.push(` - You have not deposited any ${ct.tokensLabel} on Convex yet`);
+        }
         if (ct.userBalances.usdTotal) {
             subParts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
         }
-        if (ct.userBalances.unstaked) {
+        if (ct.userBalances.unstaked > 0n) {
             subParts.push(` of which ${formatUnits(ct.userBalances.unstaked, d)}`);
             if (ct.userBalances.usdUnstaked) {
                 subParts.push(` (${to$$$(ct.userBalances.usdUnstaked)})`);
             }
-            subParts.push(` is unstaked`);
+            subParts.push(` are unstaked`);
+        } else if (ct.userBalances.total > 0n && ct.userBalances.unstaked === 0n) {
+            subParts.push(`, all staked`);
         }
         parts.push(subParts.join(''));
-        if (ct.userBalances.underlying) {
-            parts.push(` - You can ${ct.userBalances.total > 0n ? 'still deposit' : 'deposit on Convex'}: ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel}`);
+        if (ct.userBalances.underlying > 0n) {
+            parts.push(
+                ` - You own ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} of the underlying Curve ${ct.typeLabelShort}, which you can deposit on Convex to earn rewards`,
+            );
             if (ct.userBalances.usdUnderlying) {
                 parts[parts.length - 1] += ` (${to$$$(ct.userBalances.usdUnderlying)})`;
             }
+        } else if (ct.userBalances.underlying === 0n) {
+            parts.push(` - You own no Curve ${ct.tokensLabel} to deposit on Convex`);
         }
     }
     parts.push(` - Total TVL: ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
@@ -464,7 +483,7 @@ export function formatConvexToken(ct: EnrichedConvexToken): string {
         parts.push(` - Total APY: ${ct.uiApy >= 0 ? `${ct.uiApy.toFixed(2)}%` : 'N/A'}`);
     }
     parts.push(` - Convex ID: ${ct.id}`);
-    parts.push(` - Underlying ${ct.typeLabelShort} on Curve: "${ct.curveName}" with address ${ct.curveTokenAddress}`);
+    parts.push(` - Underlying ${ct.typeLabelShort} on Curve: "${ct.curveName}" with Curve ID "${ct.curveId}"`);
     if (ct.isBrokenOrShutdownOrKilled) {
         parts.push(` - ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
@@ -480,12 +499,12 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
     let parts: string[] = [];
     parts.push(`Convex ${ct.typeLabelShort} token ${ct.uiName}`);
     parts.push(` with ID ${ct.id},`);
-    parts.push(` underlying ${ct.typeLabelShort} on Curve "${ct.curveName}",`);
+    parts.push(` underlying ${ct.typeLabelShort} on Curve "${ct.curveName}" with Curve ID "${ct.curveId}",`);
     parts.push(` TVL ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(`, Total APR: ${ct.uiApr && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
     if (ct.userBalances) {
         if (ct.userBalances.total > 0n) {
-            parts.push(` - you have ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel} on Convex`);
+            parts.push(` - you own ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel} on Convex`);
             if (ct.userBalances.usdTotal) {
                 parts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
             }
@@ -512,14 +531,14 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
 export function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: number): boolean {
     const conditions: boolean[] = [];
     conditions.push(poolOrVault.convexPoolData.usdTotal >= minTvl);
-    conditions.push(!poolOrVaultIsInactive(poolOrVault));
+    conditions.push(!isPoolOrVaultInactive(poolOrVault));
     return conditions.every((condition) => condition);
 }
 
 /**
  * Whether a pool or vault is inactive, i.e. broken, shutdown or killed
  */
-export function poolOrVaultIsInactive(poolOrVault: Pool | LendingVault): boolean {
+export function isPoolOrVaultInactive(poolOrVault: Pool | LendingVault): boolean {
     const conditions: boolean[] = [];
     conditions.push(poolOrVault.isGaugeKilled);
     conditions.push(poolOrVault.convexPoolData.shutdown);
