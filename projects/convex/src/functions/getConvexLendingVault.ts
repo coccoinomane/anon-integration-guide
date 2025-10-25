@@ -8,6 +8,10 @@ interface Props {
     convexLvIdOrName: string;
 }
 
+/**
+ * Show the details of a Convex lending vault, including the ID,
+ * APR, APY, and user balance.
+ */
 export async function getConvexLendingVault({ chainName, convexLvIdOrName }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
     // Validation
     const chainId = EVM.utils.getChainFromName(chainName as EvmChain);

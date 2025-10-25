@@ -20,6 +20,14 @@ interface Props {
     minTvl: number | null;
 }
 
+/**
+ * Show the top positions in the user's portfolio on the given chain.
+ * This includes both pools and vaults.
+ *
+ * Convex does not have an API to fetch the user portfolio, therefore
+ * we fetch the balances of all pools and vaults on the chain, using
+ * multicall.
+ */
 export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
     // Default value for the minimum TVL
     minTvl = minTvl ?? MIN_TVL;

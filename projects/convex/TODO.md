@@ -9,7 +9,6 @@
 - In `getConvexLiquidityPool`, fix the issue whereby "cvxCRV-CRV" and "cvxCRV+CRV" are not found. Could be solved by searching by coins ([coin1, coin2, ...]) instead of UI name.
 - Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
 - How to check CRV and CVX staking APR > https://discord.com/channels/820795644494610432/864157305566527508/1154349279763234868
-- Add docstrings to functions
 - The assistant always sets minTvl to zero in portfolio tool
 - Put inactive pools/vaults last in getConvexLiquidityPool and getConvexLendingVault
 

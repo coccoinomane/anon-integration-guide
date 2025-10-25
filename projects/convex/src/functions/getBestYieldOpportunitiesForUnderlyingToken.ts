@@ -9,6 +9,17 @@ interface Props {
     positionTypes: ('LP' | 'LV')[] | null;
 }
 
+/**
+ * Show Convex pools and vaults sorted by APR yield.  The user balance
+ * will be shown, too.
+ *
+ * Optionally, specify the position types to include in the result (
+ * (by default, both LP and LV are included).
+ *
+ * To sort the pool/vaults by APR, rather than checking the APR of
+ * every single one on-chain, we use the APR returned by Convex/Curve
+ * API.
+ */
 export async function getBestYieldOpportunitiesForUnderlyingToken(
     { chainName, tokenSymbol, positionTypes }: Props,
     { evm: { getProvider, getAddress } }: FunctionOptions,

@@ -8,6 +8,10 @@ interface Props {
     convexLpIdOrName: string;
 }
 
+/**
+ * Show the details of a Convex liquidity pool, including the ID,
+ * APR, APY, and user balance.
+ */
 export async function getConvexLiquidityPool({ chainName, convexLpIdOrName }: Props, { evm: { getProvider, getAddress } }: FunctionOptions): Promise<FunctionReturn> {
     // Validation
     const chainId = EVM.utils.getChainFromName(chainName as EvmChain);
