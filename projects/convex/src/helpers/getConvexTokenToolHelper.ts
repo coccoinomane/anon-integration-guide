@@ -1,6 +1,6 @@
 import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyanon/sdk';
 import { supportedChains } from '../constants';
-import { ConvexCurveClient, LendingVault } from '../client';
+import { ConvexCurveClient, LendingVault, Pool } from '../client';
 import { formatConvexToken, enrichConvexToken, getConvexTokenUiName, isPoolOrVaultInactive } from './poolAndVaults';
 
 /**
@@ -34,15 +34,11 @@ export async function getConvexTokenToolHelper(
     const tokenLabel = tokenType === 'LP' ? 'Liquidity Pool' : 'Lending Vault';
 
     // First attempt to match by ID
-    let token = tokens.find((token) => token.convexPoolData.id.toString() === convexTokenIdOrName);
+    let token = tokens.find((token) => token.convexPoolData.id.toString() === convexTokenIdOrName.trim());
 
     // If not found, match by name, excluding inactive vaults
     if (!token) {
-        const matchingTokens = tokens.filter((token) => {
-            // For details on token names, see tools.ts
-            const tokenName = tokenType === 'LP' ? getConvexTokenUiName(token).toLowerCase() : (token as LendingVault).assets.collateral.symbol.toLowerCase();
-            return tokenName === convexTokenIdOrName.toLowerCase() && !isPoolOrVaultInactive(token);
-        });
+        const matchingTokens = tokenType === 'LP' ? matchPoolByName(tokens as Pool[], convexTokenIdOrName) : matchVaultByName(tokens as LendingVault[], convexTokenIdOrName);
         // In case of multiple matches, show the user the options
         // and ask them to disambiguate
         if (matchingTokens.length > 1) {
@@ -62,16 +58,21 @@ export async function getConvexTokenToolHelper(
 
     // Nothing found...
     if (!token) {
-        if (parseInt(convexTokenIdOrName)) {
+        if (/^\d+$/.test(convexTokenIdOrName)) {
             // Case of ID passed...
             return toResult(`No Convex ${tokenLabel} token found with ID ${convexTokenIdOrName} on ${chainName} chain.\n`);
         } else {
             // Case of name passed...
-            let message = `No active Convex ${tokenLabel} token found with collateral name '${convexTokenIdOrName}' on ${chainName} chain.\n`;
-            // For LP tokens, warn the user if the name is not a valid LP token name
-            if (tokenType === 'LP' && !convexTokenIdOrName.includes('+')) {
-                message +=
-                    'IMPORTANT: Make sure you are using the correct name: the name of a Convex LP token consists of the symbols of the pool coins, separated by a plus sign: "ETH+stETH", "USDC+USDT", "crvUSD+tBTC+wstETH", etc.';
+            let message: string;
+            if (tokenType === 'LP') {
+                message = `No active Convex ${tokenLabel} token found with name '${convexTokenIdOrName}' on ${chainName} chain.\n`;
+                // For LP tokens, warn the user if the name is not a valid LP token name
+                if (!convexTokenIdOrName.includes('+')) {
+                    message +=
+                        'IMPORTANT: Make sure you are using the correct name: the name of a Convex LP token consists of the symbols of the pool coins, separated by a plus sign: "ETH+stETH", "USDC+USDT", "crvUSD+tBTC+wstETH", etc.';
+                }
+            } else {
+                message = `No active Convex ${tokenLabel} token found with collateral name '${convexTokenIdOrName}' on ${chainName} chain.\n`;
             }
             return toResult(message);
         }
@@ -82,4 +83,65 @@ export async function getConvexTokenToolHelper(
     const enrichedToken = await enrichConvexToken(token, provider, apys[token.id], account);
 
     return toResult(formatConvexToken(enrichedToken));
+}
+
+/**
+ * Generate all permutations of an array
+ */
+function getAllPermutations<T>(arr: T[]): T[][] {
+    if (arr.length <= 1) return [arr];
+    const result: T[][] = [];
+    for (let i = 0; i < arr.length; i++) {
+        const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+        const restPermutations = getAllPermutations(rest);
+        for (const perm of restPermutations) {
+            result.push([arr[i], ...perm]);
+        }
+    }
+    return result;
+}
+
+/**
+ * Match a liquidity pool by name, normalizing separators
+ * and checking all permutations of token symbols.
+ * E.g., "ETH+stETH" will also match "stETH+ETH"
+ */
+function matchPoolByName(pools: Pool[], searchName: string): Pool[] {
+    // First search by exact name
+    const exactMatch = pools.find((pool) => getConvexTokenUiName(pool).toLowerCase() === searchName.trim().toLowerCase());
+    if (exactMatch) return [exactMatch];
+
+    // Normalize separators: convert "-" to "+" for matching
+    const normalizedInput = searchName.trim().replace(/-/g, '+').toLowerCase();
+
+    // Generate all permutations if it contains a separator
+    let searchNames: string[];
+    if (normalizedInput.includes('+')) {
+        const tokens = normalizedInput.split('+');
+        const allPermutations = getAllPermutations(tokens);
+        // Convert permutations back to strings and deduplicate
+        const permutationStrings = allPermutations.map((perm) => perm.join('+'));
+        searchNames = Array.from(new Set(permutationStrings));
+    } else {
+        searchNames = [normalizedInput];
+    }
+
+    // Filter pools by name, excluding inactive ones
+    return pools.filter((pool) => {
+        const poolName = getConvexTokenUiName(pool).toLowerCase();
+        return searchNames.includes(poolName) && !isPoolOrVaultInactive(pool);
+    });
+}
+
+/**
+ * Match a lending vault by collateral symbol name.
+ */
+function matchVaultByName(vaults: LendingVault[], searchName: string): LendingVault[] {
+    const normalizedInput = searchName.trim().toLowerCase();
+
+    // Filter vaults by collateral symbol, excluding inactive ones
+    return vaults.filter((vault) => {
+        const vaultName = vault.assets.collateral.symbol.toLowerCase();
+        return vaultName === normalizedInput && !isPoolOrVaultInactive(vault);
+    });
 }
