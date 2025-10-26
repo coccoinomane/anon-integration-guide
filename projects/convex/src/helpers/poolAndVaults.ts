@@ -13,6 +13,7 @@ import { AprBreakdown, calculateConvexApr } from './apr';
 import { getChainNameFromProvider } from './chains';
 import Big from 'big.js';
 import { fetchConvexTokenBalancesFromApiObject } from './balances';
+import { ClaimableRewards, getClaimableRewards } from './rewards';
 
 /**
  * How much does a user owns of a Convex token, both
@@ -27,6 +28,7 @@ export type ConvexTokenBalances = {
     usdTotal?: number; // USD value of the staked + unstaked amount
     underlying: bigint; // Amount of underlying Curve LP or Vault tokens in wallet
     usdUnderlying?: number; // USD value of the underlying amount
+    claimableRewards?: ClaimableRewards; // Claimable CRV and CVX rewards from staking
 };
 
 /**
@@ -66,7 +68,8 @@ export type EnrichedConvexToken = {
  *
  * Optionally:
  * - pass the user account address to fetch the user balances
- *   (takes 1 request to the blockchain)
+ *   (takes 1 request to the blockchain) and claimable rewards
+ *   (takes 2 requests to the blockchain in most cases)
  * - pass the APY object to compute the APR and APY (takes 1
  *   request to the blockchain)
  */
@@ -133,7 +136,18 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
     }
     // Compute full user balances if we have an account
     if (account) {
-        result.userBalances = await fetchConvexTokenBalancesFromApiObject(provider, obj, account, true);
+        try {
+            result.userBalances = await fetchConvexTokenBalancesFromApiObject(provider, obj, account, true);
+        } catch (error) {
+            console.warn(`Failed to fetch convex token balances for pool ${obj.convexPoolData.id}:`, error);
+        }
+        if (result.userBalances && result.userBalances.staked > 0n) {
+            try {
+                result.userBalances.claimableRewards = await getClaimableRewards(provider, obj.convexPoolData.crvRewards, account, true);
+            } catch (error) {
+                console.warn(`Failed to fetch claimable rewards for pool ${obj.convexPoolData.id}:`, error);
+            }
+        }
     }
     return result;
 }
@@ -175,7 +189,8 @@ export function getConvexTokenUiName(poolOrVault: Pool | LendingVault): string {
 
 /**
  * Return a multiple line string with all data for the given
- * Convex token, including the user's balances
+ * Convex token, including the user's balances, TVL, APRs, APY
+ * and claimable rewards
  */
 export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean = true): string {
     let parts: string[] = [];
@@ -213,6 +228,32 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
         } else if (ct.userBalances.underlying === 0n) {
             parts.push(` - You own no Curve ${ct.tokensLabel} to deposit on Convex`);
         }
+        // Display claimable rewards
+        if (ct.userBalances.claimableRewards) {
+            const rewards = ct.userBalances.claimableRewards;
+            const rewardsParts: string[] = [];
+
+            if (rewards.crv > 0n || rewards.cvx > 0n) {
+                rewardsParts.push(' - You can claim rewards:');
+                if (rewards.crv > 0n) {
+                    rewardsParts.push(` ${rewards.crvFormatted} CRV`);
+                }
+                if (rewards.cvx > 0n) {
+                    if (rewards.crv > 0n) rewardsParts.push(' and');
+                    rewardsParts.push(` ${rewards.cvxFormatted} CVX`);
+                }
+
+                // Add extra rewards if any
+                if (rewards.extraRewards && rewards.extraRewards.length > 0) {
+                    const extraCount = rewards.extraRewards.filter((r) => r.amount > 0n).length;
+                    if (extraCount > 0) {
+                        rewardsParts.push(` (plus ${extraCount} other token${extraCount > 1 ? 's' : ''})`);
+                    }
+                }
+
+                parts.push(rewardsParts.join(''));
+            }
+        }
     }
     parts.push(` - Total TVL: ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(` - Total APR: ${typeof ct.uiApr === 'number' && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
@@ -235,7 +276,7 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
 
 /**
  * Return a single line string with the most important data for the given
- * Convex token, including the user's balances
+ * Convex token, including the user's balances, TVL and APR
  */
 export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
     const d = CONVEX_TOKEN_DECIMALS;
@@ -255,6 +296,20 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
                 parts.push(` and you can deposit ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} more`);
                 if (ct.userBalances.usdUnderlying) {
                     parts.push(` (${to$$$(ct.userBalances.usdUnderlying)})`);
+                }
+            }
+            // Add claimable rewards if any
+            if (ct.userBalances.claimableRewards) {
+                const rewards = ct.userBalances.claimableRewards;
+                if (rewards.crv > 0n || rewards.cvx > 0n) {
+                    parts.push(` - claimable:`);
+                    if (rewards.crv > 0n) {
+                        parts.push(` ${rewards.crvFormatted} CRV`);
+                    }
+                    if (rewards.cvx > 0n) {
+                        if (rewards.crv > 0n) parts.push(',');
+                        parts.push(` ${rewards.cvxFormatted} CVX`);
+                    }
                 }
             }
         } else if (ct.userBalances.underlying > 0n) {

@@ -13,6 +13,7 @@ import {
 import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
 import { fetchMultipleConvexTokenBalances } from '../helpers/balances';
+import { getClaimableRewards } from '../helpers/rewards';
 
 interface Props {
     chainName: string;
@@ -131,6 +132,22 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         enrichedTokens.push(enriched);
     }
 
+    // Fetch claimable rewards for positions with staked tokens
+    for (const enriched of enrichedTokens) {
+        if (enriched.userBalances && enriched.userBalances.staked > 0n) {
+            try {
+                enriched.userBalances.claimableRewards = await getClaimableRewards(
+                    provider,
+                    enriched.apiObject.convexPoolData.crvRewards,
+                    account,
+                    true, // Include extra rewards
+                );
+            } catch (error) {
+                console.warn(`Failed to fetch claimable rewards for pool ${enriched.id}:`, error);
+            }
+        }
+    }
+
     // Sort by USD value (highest first)
     enrichedTokens.sort((a, b) => {
         const aValue = a.userBalances?.usdTotal ?? 0;
@@ -169,6 +186,20 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         }
         if (ct.uiApr) {
             subParts.push(` earning ${ct.uiApr.toFixed(2)}% APR`);
+        }
+        // Add claimable rewards if any
+        if (balance.claimableRewards) {
+            const rewards = balance.claimableRewards;
+            if (rewards.crv > 0n || rewards.cvx > 0n) {
+                subParts.push(` - claimable:`);
+                if (rewards.crv > 0n) {
+                    subParts.push(` ${rewards.crvFormatted} CRV`);
+                }
+                if (rewards.cvx > 0n) {
+                    if (rewards.crv > 0n) subParts.push(',');
+                    subParts.push(` ${rewards.cvxFormatted} CVX`);
+                }
+            }
         }
         if (ct.isBrokenOrShutdownOrKilled) {
             subParts.push(` ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);

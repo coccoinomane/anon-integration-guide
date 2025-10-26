@@ -6,6 +6,7 @@
 
 ## Minor
 
+- Check that extra rewards are displayed correctly
 - Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
 - How to check CRV and CVX staking APR > https://discord.com/channels/820795644494610432/864157305566527508/1154349279763234868
 
