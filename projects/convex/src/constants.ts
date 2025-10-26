@@ -32,6 +32,12 @@ export const CVX_TOKEN_ADDRESS: `0x${string}` = '0x4e3fbd56cd56c3e72c1403e103b45
 export const CRV_TOKEN_ADDRESS: `0x${string}` = '0xD533a949740bb3306d119CC777fa900bA034cd52';
 
 /**
+ * Address of the CvxMining contract on Ethereum,
+ * which is used to get CVX rewards from CRV
+ */
+export const CVX_MINING_CONTRACT_ADDRESS: `0x${string}` = '0x3c75BFe6FbfDa3A94E7E7E8c2216AFc684dE5343';
+
+/**
  * The number of decimals for the Convex LP token deposit tokens
  *
  * It is guaranteed to be 18 since "we only deal with curve lp
