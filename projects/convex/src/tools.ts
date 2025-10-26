@@ -114,7 +114,7 @@ export const tools = [
                 properties: {
                     chainName: {
                         type: 'string',
-                        enum: supportedChains.map(EVM.utils.getChainName),
+                        enum: supportedChains.map(getChainName),
                         description: 'Chain name',
                     },
                     convexTokenId: {
@@ -131,6 +131,34 @@ export const tools = [
                     },
                 },
                 required: ['chainName', 'convexTokenId', 'removalPercentage', 'withdrawUnstaked'],
+                additionalProperties: false,
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'claimRewards',
+            description: [
+                'Claim CRV and CVX rewards earned from staking in a Convex pool or vault.',
+                'This will claim CRV rewards, CVX rewards and any extra reward tokens (e.g. FXS, SPELL, etc.).',
+                "Use the `getMyPositionsPortfolio` tool to check the user's claimable rewards before claiming.",
+            ].join('\n'),
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {
+                    chainName: {
+                        type: 'string',
+                        enum: supportedChains.map(getChainName),
+                        description: 'Chain name',
+                    },
+                    convexTokenId: {
+                        type: 'number',
+                        description: 'The numeric ID of the Convex pool or vault to claim rewards from',
+                    },
+                },
+                required: ['chainName', 'convexTokenId'],
                 additionalProperties: false,
             },
         },
@@ -230,7 +258,7 @@ export const tools = [
                 properties: {
                     chainName: {
                         type: 'string',
-                        enum: supportedChains.map(EVM.utils.getChainName),
+                        enum: supportedChains.map(getChainName),
                         description: 'Chain name',
                     },
                     convexLpIdOrName: {
@@ -260,7 +288,7 @@ export const tools = [
                 properties: {
                     chainName: {
                         type: 'string',
-                        enum: supportedChains.map(EVM.utils.getChainName),
+                        enum: supportedChains.map(getChainName),
                         description: 'Chain name',
                     },
                     convexLvIdOrName: {

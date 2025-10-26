@@ -69,9 +69,9 @@ Please note that:
 
 ## Claim rewards
 
-- TODO: Show my claimable rewards on Convex
-- TODO: Claim all of my available rewards on Convex
-- TODO: Claim my LP rewards on Convex
+- Show my claimable rewards on Convex on Ethereum
+- Claim all of my available rewards on Convex on Ethereum
+- Claim rewards from pool CRV+cvxCRV on Convex on Ethereum
 
 ### CRV and CVX staking
 

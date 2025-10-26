@@ -180,6 +180,7 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         subParts.push(`${index + 1}.`);
         subParts.push(` ${usdValue}`);
         subParts.push(` in Convex ${ct.typeLabel} "${ct.uiName}"`);
+        subParts.push(` with ID ${ct.id}`);
         subParts.push(`, ${formatUnits(balance.total, d)} ${ct.type === 'LP' ? 'LP' : 'vault'} tokens`);
         if (balance.unstaked > 0n) {
             subParts.push(` (of which ${unstaked} unstaked)`);

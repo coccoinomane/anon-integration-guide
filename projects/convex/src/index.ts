@@ -17,6 +17,7 @@ export default {
         'depositDollarAmount',
         'depositFractionOfTokens',
         'withdraw',
+        'claimRewards',
         'getMyPositionsPortfolio',
         'getBestYieldOpportunitiesForUnderlyingToken',
         'getConvexLiquidityPool',
