@@ -120,3 +120,25 @@ export async function getClaimableRewards(
 
     return result;
 }
+
+/**
+ * Format the claimable rewards into a human-readable string
+ * with the CRV, CVX and extra rewards
+ */
+export function formatClaimableRewards(rewards: ClaimableRewards): string {
+    let parts: string[] = [];
+    if (rewards.crv > 0n) {
+        parts.push(`${rewards.crvFormatted} CRV`);
+    }
+    if (rewards.cvx > 0n) {
+        parts.push(`${rewards.cvxFormatted} CVX`);
+    }
+    if (rewards.extraRewards && rewards.extraRewards.length > 0) {
+        rewards.extraRewards.forEach((r) => {
+            if (r.amount > 0n) {
+                parts.push(`${r.formatted} ${r.symbol}`);
+            }
+        });
+    }
+    return parts.join(', ');
+}

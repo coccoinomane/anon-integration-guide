@@ -3,7 +3,7 @@ import { encodeFunctionData } from 'viem';
 import { supportedChains } from '../constants';
 import { BoosterPoolInfo, fetchBoosterPoolInfo } from '../helpers/booster';
 import { baseRewardPoolAbi } from '../abis';
-import { getClaimableRewards } from '../helpers/rewards';
+import { formatClaimableRewards, getClaimableRewards } from '../helpers/rewards';
 
 interface Props {
     chainName: string;
@@ -64,22 +64,9 @@ export async function claimRewards({ chainName, convexTokenId }: Props, options:
     }
 
     // Build reward summary message
-    const rewardParts: string[] = [];
-    if (claimableRewards.crv > 0n) {
-        rewardParts.push(`${claimableRewards.crvFormatted} CRV`);
-    }
-    if (claimableRewards.cvx > 0n) {
-        rewardParts.push(`${claimableRewards.cvxFormatted} CVX`);
-    }
-    if (claimableRewards.extraRewards && claimableRewards.extraRewards.length > 0) {
-        claimableRewards.extraRewards.forEach((r) => {
-            if (r.amount > 0n) {
-                rewardParts.push(`${r.formatted} ${r.symbol}`);
-            }
-        });
-    }
+    const rewardsStr = formatClaimableRewards(claimableRewards);
 
-    await notify(`Will claim ${rewardParts.join(', ')} from Convex pool ${convexTokenId}`);
+    await notify(`Will claim approximately ${rewardsStr} from Convex pool ${convexTokenId}`);
 
     // Prepare claim transaction
     const tx: EVM.types.TransactionParams = {
@@ -95,6 +82,6 @@ export async function claimRewards({ chainName, convexTokenId }: Props, options:
     const result = await sendTransactions({ chainId, account, transactions: [tx] });
     const message = result.data[result.data.length - 1].message;
 
-    const successMsg = `Successfully claimed ${rewardParts.join(', ')} from Convex pool ${convexTokenId}. ${message}`;
+    const successMsg = `Successfully claimed approximately ${rewardsStr} from Convex pool ${convexTokenId}. ${message}`;
     return toResult(successMsg);
 }

@@ -13,7 +13,7 @@ import {
 import { to$$$, toTitleCase } from '../helpers/format';
 import { formatUnits } from 'viem';
 import { fetchMultipleConvexTokenBalances } from '../helpers/balances';
-import { getClaimableRewards } from '../helpers/rewards';
+import { formatClaimableRewards, getClaimableRewards } from '../helpers/rewards';
 
 interface Props {
     chainName: string;
@@ -190,23 +190,9 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
         }
         // Add claimable rewards if any
         if (balance.claimableRewards) {
-            const rewards = balance.claimableRewards;
-            const rewardsParts: string[] = [];
-            if (rewards.crv > 0n) {
-                rewardsParts.push(`${rewards.crvFormatted} CRV`);
-            }
-            if (rewards.cvx > 0n) {
-                rewardsParts.push(`${rewards.cvxFormatted} CVX`);
-            }
-            if (rewards.extraRewards && rewards.extraRewards.length > 0) {
-                rewards.extraRewards.forEach((r) => {
-                    if (r.amount > 0n) {
-                        rewardsParts.push(`${r.formatted} ${r.symbol}`);
-                    }
-                });
-            }
-            if (rewardsParts.length > 0) {
-                subParts.push(` - claimable: ${rewardsParts.join(', ')}`);
+            const rewardsStr = formatClaimableRewards(balance.claimableRewards);
+            if (rewardsStr) {
+                subParts.push(` - claimable: ${rewardsStr}`);
             }
         }
         if (ct.isBrokenOrShutdown) {
