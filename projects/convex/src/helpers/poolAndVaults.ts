@@ -44,7 +44,7 @@ export type EnrichedConvexToken = {
     typeLabelShort: 'pool' | 'vault';
     tokensLabel: 'LP tokens' | 'vault tokens';
     id: number;
-    isBrokenOrShutdownOrKilled: boolean;
+    isBrokenOrShutdown: boolean;
     uiName: string;
     /** The base APR for the token: swap fees for pools, lending interest for vaults */
     baseApr?: number;
@@ -83,12 +83,12 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
     } else {
         throw new Error('Could not determine the type of token (LP or Lending vault)');
     }
-    // Determine whether the pool is broken, shutdown, or killed
-    let isBrokenOrShutdownOrKilled: boolean;
+    // Determine whether the pool is broken or shutdown
+    let isBrokenOrShutdown: boolean;
     if (isPool(obj)) {
-        isBrokenOrShutdownOrKilled = obj.isBroken || obj.convexPoolData.shutdown || obj.isGaugeKilled;
+        isBrokenOrShutdown = obj.isBroken || obj.convexPoolData.shutdown;
     } else {
-        isBrokenOrShutdownOrKilled = obj.convexPoolData.shutdown || obj.isGaugeKilled;
+        isBrokenOrShutdown = obj.convexPoolData.shutdown;
     }
     // Compute base data
     const lpTokenPrice = calculateTokenUsdPrice(obj);
@@ -98,7 +98,7 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
         typeLabelShort: type === 'LP' ? 'pool' : 'vault',
         tokensLabel: type === 'LP' ? 'LP tokens' : 'vault tokens',
         id: obj.convexPoolData.id,
-        isBrokenOrShutdownOrKilled,
+        isBrokenOrShutdown,
         uiName: isPool(obj) ? getConvexLpTokenUiName(obj) : getConvexLvTokenUiName(obj),
         TVL: obj.convexPoolData.usdTotal ?? null,
         usdPrice: lpTokenPrice,
@@ -269,7 +269,7 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
     }
     parts.push(` - Convex ID: ${ct.id}`);
     parts.push(` - Underlying ${ct.typeLabelShort} on Curve: "${ct.curveName}" with Curve ID "${ct.curveId}"`);
-    if (ct.isBrokenOrShutdownOrKilled) {
+    if (ct.isBrokenOrShutdown) {
         parts.push(` - ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
     return parts.join('\n');
@@ -317,7 +317,7 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
             parts.push(` - you can deposit ${formatUnits(ct.userBalances.underlying, d)} ${ct.tokensLabel} on Convex`);
         }
     }
-    if (ct.isBrokenOrShutdownOrKilled) {
+    if (ct.isBrokenOrShutdown) {
         parts.push(` ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
     return parts.filter(Boolean).join('');
@@ -335,11 +335,10 @@ export function shouldIncludePosition(poolOrVault: Pool | LendingVault, minTvl: 
 }
 
 /**
- * Whether a pool or vault is inactive, i.e. broken, shutdown or killed
+ * Whether a pool or vault is inactive, i.e. broken or shutdown
  */
 export function isPoolOrVaultInactive(poolOrVault: Pool | LendingVault): boolean {
     const conditions: boolean[] = [];
-    conditions.push(poolOrVault.isGaugeKilled);
     conditions.push(poolOrVault.convexPoolData.shutdown);
     if (isPool(poolOrVault)) {
         conditions.push(poolOrVault.isBroken);

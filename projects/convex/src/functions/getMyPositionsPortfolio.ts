@@ -202,7 +202,7 @@ export async function getMyPositionsPortfolio({ chainName, positionTypes, minTvl
                 }
             }
         }
-        if (ct.isBrokenOrShutdownOrKilled) {
+        if (ct.isBrokenOrShutdown) {
             subParts.push(` ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
         }
         parts.push(subParts.join(''));
