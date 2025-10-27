@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const baseRewardPoolAbi = [
     {
         inputs: [
@@ -660,4 +662,4 @@ export const baseRewardPoolAbi = [
         stateMutability: 'nonpayable',
         type: 'function',
     },
-];
+] as const satisfies Abi;
