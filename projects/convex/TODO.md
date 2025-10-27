@@ -6,15 +6,12 @@
 
 ## Minor
 
-- Claim rewards:
-    - Check that extra tokens are claimed correctly
-    - src/helpers/rewards.ts: format extra rewards with correct decimals
-- Check that extra token rewards are displayed correctly
 - Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
 - How to check CRV and CVX staking APR > https://discord.com/channels/820795644494610432/864157305566527508/1154349279763234868
 
 ## Future
 
+- Reduce the number of calls to the blockchain in getClaimableRewards using multicall
 - Optionally have the claimRewards tool to lock CVX (see ClaimZap.sol)
 - In deposit tools, if the user does not have enough tokens, we could suggest him to deposit into Curve first by showing them the URL to the Curve pool/lending vault page
 - In `getConvexLiquidityPool` and `getConvexLendingVault`, specify the amounts of claimable rewards (https://d.pr/i/IUQMoB)

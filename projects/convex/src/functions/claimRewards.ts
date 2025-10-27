@@ -72,14 +72,11 @@ export async function claimRewards({ chainName, convexTokenId }: Props, options:
         rewardParts.push(`${claimableRewards.cvxFormatted} CVX`);
     }
     if (claimableRewards.extraRewards && claimableRewards.extraRewards.length > 0) {
-        const extraWithRewards = claimableRewards.extraRewards.filter((r) => r.amount > 0n);
-        if (extraWithRewards.length > 0) {
-            if (rewardParts.length > 0) {
-                rewardParts.push(`plus ${extraWithRewards.length} extra reward token(s)`);
-            } else {
-                rewardParts.push(`${extraWithRewards.length} extra reward token(s)`);
+        claimableRewards.extraRewards.forEach((r) => {
+            if (r.amount > 0n) {
+                rewardParts.push(`${r.formatted} ${r.symbol}`);
             }
-        }
+        });
     }
 
     await notify(`Will claim ${rewardParts.join(', ')} from Convex pool ${convexTokenId}`);

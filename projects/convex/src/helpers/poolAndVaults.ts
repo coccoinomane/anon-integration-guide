@@ -73,7 +73,13 @@ export type EnrichedConvexToken = {
  * - pass the APY object to compute the APR and APY (takes 1
  *   request to the blockchain)
  */
-export async function enrichConvexToken(obj: Pool | LendingVault, provider: PublicClient, apyFromApi?: Apy, account?: `0x${string}`): Promise<EnrichedConvexToken> {
+export async function enrichConvexToken(
+    obj: Pool | LendingVault,
+    provider: PublicClient,
+    apyFromApi?: Apy,
+    account?: `0x${string}`,
+    withRewards: boolean = true,
+): Promise<EnrichedConvexToken> {
     // Determine the type of token
     let type: 'LP' | 'LV';
     if (isPool(obj)) {
@@ -142,7 +148,7 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
         } catch (error) {
             console.warn(`Failed to fetch convex token balances for pool ${obj.convexPoolData.id}:`, error);
         }
-        if (result.userBalances && result.userBalances.staked > 0n) {
+        if (withRewards && result.userBalances && result.userBalances.staked > 0n) {
             try {
                 result.userBalances.claimableRewards = await getClaimableRewards(provider, obj.convexPoolData.crvRewards, account, true);
             } catch (error) {
@@ -234,25 +240,21 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
             const rewards = ct.userBalances.claimableRewards;
             const rewardsParts: string[] = [];
 
-            if (rewards.crv > 0n || rewards.cvx > 0n) {
-                rewardsParts.push(' - You can claim rewards:');
-                if (rewards.crv > 0n) {
-                    rewardsParts.push(` ${rewards.crvFormatted} CRV`);
-                }
-                if (rewards.cvx > 0n) {
-                    if (rewards.crv > 0n) rewardsParts.push(' and');
-                    rewardsParts.push(` ${rewards.cvxFormatted} CVX`);
-                }
-
-                // Add extra rewards if any
-                if (rewards.extraRewards && rewards.extraRewards.length > 0) {
-                    const extraCount = rewards.extraRewards.filter((r) => r.amount > 0n).length;
-                    if (extraCount > 0) {
-                        rewardsParts.push(` (plus ${extraCount} other token${extraCount > 1 ? 's' : ''})`);
+            if (rewards.crv > 0n) {
+                rewardsParts.push(`${rewards.crvFormatted} CRV`);
+            }
+            if (rewards.cvx > 0n) {
+                rewardsParts.push(`${rewards.cvxFormatted} CVX`);
+            }
+            if (rewards.extraRewards && rewards.extraRewards.length > 0) {
+                rewards.extraRewards.forEach((r) => {
+                    if (r.amount > 0n) {
+                        rewardsParts.push(`${r.formatted} ${r.symbol}`);
                     }
-                }
-
-                parts.push(rewardsParts.join(''));
+                });
+            }
+            if (rewardsParts.length > 0) {
+                parts.push(` - You can claim rewards: ${rewardsParts.join(', ')}`);
             }
         }
     }
@@ -302,15 +304,22 @@ export function formatConvexTokenShort(ct: EnrichedConvexToken): string {
             // Add claimable rewards if any
             if (ct.userBalances.claimableRewards) {
                 const rewards = ct.userBalances.claimableRewards;
-                if (rewards.crv > 0n || rewards.cvx > 0n) {
-                    parts.push(` - claimable:`);
-                    if (rewards.crv > 0n) {
-                        parts.push(` ${rewards.crvFormatted} CRV`);
-                    }
-                    if (rewards.cvx > 0n) {
-                        if (rewards.crv > 0n) parts.push(',');
-                        parts.push(` ${rewards.cvxFormatted} CVX`);
-                    }
+                const rewardsParts: string[] = [];
+                if (rewards.crv > 0n) {
+                    rewardsParts.push(`${rewards.crvFormatted} CRV`);
+                }
+                if (rewards.cvx > 0n) {
+                    rewardsParts.push(`${rewards.cvxFormatted} CVX`);
+                }
+                if (rewards.extraRewards && rewards.extraRewards.length > 0) {
+                    rewards.extraRewards.forEach((r) => {
+                        if (r.amount > 0n) {
+                            rewardsParts.push(`${r.formatted} ${r.symbol}`);
+                        }
+                    });
+                }
+                if (rewardsParts.length > 0) {
+                    parts.push(` - claimable: ${rewardsParts.join(', ')}`);
                 }
             }
         } else if (ct.userBalances.underlying > 0n) {

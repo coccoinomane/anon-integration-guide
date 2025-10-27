@@ -90,7 +90,8 @@ export async function getBestYieldOpportunitiesForUnderlyingToken(
     // Enrich the opportunities
     const enrichedOpportunities: EnrichedConvexToken[] = [];
     for (const poolOrVault of firstNOpportunities) {
-        const enriched = await enrichConvexToken(poolOrVault, provider, apys[poolOrVault.id], account);
+        // Get user balance but do not get claimable rewards
+        const enriched = await enrichConvexToken(poolOrVault, provider, apys[poolOrVault.id], account, false);
         enrichedOpportunities.push(enriched);
     }
 

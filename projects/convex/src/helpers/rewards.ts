@@ -2,7 +2,7 @@
  * Functions to fetch claimable rewards from Convex staking positions
  */
 
-import { PublicClient, formatUnits } from 'viem';
+import { PublicClient, formatUnits, erc20Abi } from 'viem';
 import { baseRewardPoolAbi } from '../abis/baseRewardPoolAbi';
 import { cvxMiningAbi } from '../abis/cvxMiningAbi';
 import { CVX_MINING_CONTRACT_ADDRESS } from '../constants';
@@ -14,6 +14,8 @@ export interface ClaimableRewards {
     cvxFormatted: string; // Human-readable CVX amount
     extraRewards?: Array<{
         token: `0x${string}`;
+        symbol: string;
+        decimals: number;
         amount: bigint;
         formatted: string;
     }>;
@@ -23,6 +25,8 @@ export interface ClaimableRewards {
  * Fetch the amount of claimable CRV, CVX and extra tokens
  * rewards for a user's staked position in a specific Convex
  * pool/vault.
+ *
+ * TODO: Use multicall to reduce the number of calls
  */
 export async function getClaimableRewards(
     provider: PublicClient,
@@ -78,6 +82,20 @@ export async function getClaimableRewards(
                 functionName: 'rewardToken',
             })) as `0x${string}`;
 
+            // Get the reward token symbol
+            const rewardSymbol = (await provider.readContract({
+                address: rewardToken,
+                abi: erc20Abi,
+                functionName: 'symbol',
+            })) as string;
+
+            // Get the reward token decimals
+            const rewardTokenDecimals = (await provider.readContract({
+                address: rewardToken,
+                abi: erc20Abi,
+                functionName: 'decimals',
+            })) as number;
+
             // Get earned amount for this extra reward
             const earnedExtra = (await provider.readContract({
                 address: extraRewardPoolAddress,
@@ -89,8 +107,10 @@ export async function getClaimableRewards(
             if (earnedExtra > 0n) {
                 extraRewards.push({
                     token: rewardToken,
+                    symbol: rewardSymbol,
+                    decimals: rewardTokenDecimals,
                     amount: earnedExtra,
-                    formatted: formatUnits(earnedExtra, 18),
+                    formatted: formatUnits(earnedExtra, rewardTokenDecimals),
                 });
             }
         }
