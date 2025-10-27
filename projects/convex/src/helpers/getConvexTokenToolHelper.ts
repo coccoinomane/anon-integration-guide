@@ -107,12 +107,21 @@ function getAllPermutations<T>(arr: T[]): T[][] {
  * E.g., "ETH+stETH" will also match "stETH+ETH"
  */
 function matchPoolByName(pools: Pool[], searchName: string): Pool[] {
-    // First search by exact name
-    const exactMatch = pools.find((pool) => getConvexTokenUiName(pool).toLowerCase() === searchName.trim().toLowerCase());
-    if (exactMatch) return [exactMatch];
+    const trimmedInput = searchName.trim().toLowerCase();
 
-    // Normalize separators: convert "-" to "+" for matching
-    const normalizedInput = searchName.trim().replace(/-/g, '+').toLowerCase();
+    // First attempt: exact match without separator normalization
+    const exactMatches = pools.filter((pool) => {
+        const poolName = getConvexTokenUiName(pool).toLowerCase();
+        return poolName === trimmedInput && !isPoolOrVaultInactive(pool);
+    });
+
+    // If we found exact matches, return them
+    if (exactMatches.length > 0) {
+        return exactMatches;
+    }
+
+    // Second attempt: normalize separators (convert "-" to "+") and try permutations
+    const normalizedInput = trimmedInput.replace(/-/g, '+');
 
     // Generate all permutations if it contains a separator
     let searchNames: string[];
