@@ -120,6 +120,7 @@ export async function enrichConvexToken(obj: Pool | LendingVault, provider: Publ
             tokenPrices,
             lpTokenPrice,
             provider,
+            fetchExtraRewardTokens: true,
         });
         result.apiApyObject = apyFromApi;
         result.baseApr = isPool(obj) ? obj.baseApy : obj.rates.lendApyPcent;
@@ -255,7 +256,7 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
             }
         }
     }
-    parts.push(` - Total TVL: ${ct.TVL ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
+    parts.push(` - Total TVL: ${typeof ct.TVL === 'number' ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(` - Total APR: ${typeof ct.uiApr === 'number' && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
     if (ct.uiApr && ct?.uiAprBreakdown?.breakdown && ct.uiAprBreakdown.breakdown.length > 0) {
         let aprParts = [];

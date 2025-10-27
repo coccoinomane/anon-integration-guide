@@ -6,8 +6,8 @@ This integration only supports Curve Finance, which as of Oct 2025 represents mo
 
 - [Stake your Curve positions](https://curve.convexfinance.com/stake), be it a liquidity position or a Lending Vault crvUSD token, to earn max-boosted rewards
 - [Convert your Curve tokens](https://curve.convexfinance.com/stake) (CRV) to cvxCRV, a liquid token that, once staked, accrues Curve platform revenue without the need to lock your CRV
-- [Stake your Convex tokens](https://curve.convexfinance.com/stake#stake-cvx) (CVX) to earn Convex platform revenue
-- [Stake & lock your Convex tokens](https://www.convexfinance.com/lock-cvx) to earn extra revenue from voting incentives, via the [Votium app](https://votium.app/), on top of Convex platform revenue
+- [Stake your Convex tokens](https://curve.convexfinance.com/stake#stake-cvx) (CVX) to earn a share of Convex platform revenue
+- [Lock your Convex tokens](https://www.convexfinance.com/lock-cvx) to earn a share of of Convex platform revenue and to gain voting weights, which can earn you incentives via [Votium app](https://votium.app/).
 
 More information on Convex Finance can be found on their own academy page: https://www.convexfinance.com/academy
 
@@ -70,7 +70,7 @@ Please note that:
 ## Claim rewards
 
 - Show my claimable rewards on Convex on Ethereum
-- Claim all of my available rewards on Convex on Ethereum
+- Claim all rewards on Convex on Ethereum
 - Claim rewards from pool CRV+cvxCRV on Convex on Ethereum
 
 ### CRV and CVX staking
@@ -133,5 +133,6 @@ Options:
 - [Deposit and stake LP](https://etherscan.io/tx/0x6daf22d6cae0029d483f87619a0a75777162a7dc15a01f38d41960f748aa213a)
 - [Unstake and withdraw LP](https://etherscan.io/tx/0xc17f5a231c1afc73407576364bdc14281c87843ddb0f379b52f5b607facf1027)
 - [Claim all rewards](https://etherscan.io/tx/0x976883b4e27d5646774ece1978668d7a94788751c8df5d3dcfe6c97d4753ece6)
+- [Stake CVX](https://etherscan.io/tx/0x75b94bb910aa80eb4e74f05835e8eb1b66ab806cc1519cf61ac12e2a2ae31ab3)
 - [Lock CVX](https://etherscan.io/tx/0xabb682980876276e4ebf9a60a15b4c19d96467b1d5e1a6903ebbc221f33740fa)
 - [Stake crvUSD Lending Vault token](https://etherscan.io/tx/0xbc6d38aedf85ca04aeaf77929d1757ff9c28ee2ffec89e879b9fa68fd5e7b807)

@@ -1,5 +1,6 @@
 import { erc20Abi, PublicClient } from 'viem';
-import { HEYANON_NATIVE_TOKEN_ADDRESS } from '../constants';
+import axios from 'axios';
+import { DEFAULT_TIMEOUT, HEYANON_NATIVE_TOKEN_ADDRESS } from '../constants';
 import { staticMemoize } from './memoize';
 
 /**
@@ -10,6 +11,20 @@ export interface TokenInfo {
     symbol: string;
     name: string;
     decimals: number;
+}
+
+/**
+ * Coin price information from Llama Finance API
+ */
+export interface CoinInfoFromLlama {
+    chainId: number;
+    chainName: string;
+    address: `0x${string}`;
+    decimals: number;
+    symbol: string;
+    price: number;
+    timestamp: number;
+    confidence: number;
 }
 
 /**
@@ -136,6 +151,111 @@ export class TokenHelper {
         }
 
         return balances;
+    }
+
+    /**
+     * Get USD prices for multiple tokens across chains from Llama Finance API,
+     * just as Convex UI does.
+     *
+     * Returns null if any error occurs (e.g. network error, invalid response).
+     * Exclude tokens with confidence less than 90%.
+     *
+     * For details on the endpoint, see:
+     * https://api-docs.defillama.com/#tag/coins/get/prices/current/{coins}
+     *
+     * @param tokens Array of objects with chainId and token address
+     * @returns Record mapping "chain:address" to price info, or null on error
+     */
+    @staticMemoize((tokens: Array<{ chainId: number; address: string }>) => {
+        // Create deterministic cache key by sorting tokens
+        const sortedTokens = [...tokens].sort((a, b) => {
+            if (a.chainId !== b.chainId) return a.chainId - b.chainId;
+            return a.address.toLowerCase().localeCompare(b.address.toLowerCase());
+        });
+        return sortedTokens.map((t) => `${t.chainId}:${t.address.toLowerCase()}`).join(',');
+    })
+    async getInfoAndPriceFromAddressesUsingLlama(tokens: Array<{ chainId: number; address: `0x${string}` }>): Promise<CoinInfoFromLlama[] | null> {
+        /**
+         * Convert a numeric chain ID to the Llama Finance API chain name
+         */
+        function getChainNameForLlama(chainId: number): string {
+            switch (chainId) {
+                case 1:
+                    return 'ethereum';
+                case 42161:
+                    return 'arbitrum';
+                case 137:
+                    return 'polygon';
+                default:
+                    throw new Error(`Unsupported chain ID: ${chainId}`);
+            }
+        }
+
+        /**
+         * Convert a Llama Finance API chain name to numeric chain ID
+         */
+        function getChainIdFromLlama(chainName: string): number {
+            switch (chainName) {
+                case 'ethereum':
+                    return 1;
+                case 'arbitrum':
+                    return 42161;
+                case 'polygon':
+                    return 137;
+                default:
+                    throw new Error(`Unsupported chain name: ${chainName}`);
+            }
+        }
+
+        // Call the Llama Finance API
+        try {
+            // Build the URL with chain:address pairs
+            const tokenStrings = tokens.map((t) => {
+                const chainName = getChainNameForLlama(t.chainId);
+                return `${chainName}:${t.address.toLowerCase()}`;
+            });
+            const url = `https://coins.llama.fi/prices/current/${tokenStrings.join(',')}`;
+
+            // Make the API call with timeout
+            const response = await axios.get(url, {
+                timeout: DEFAULT_TIMEOUT,
+            });
+
+            // Validate response structure
+            if (!response.data || !response.data.coins) {
+                console.warn('Invalid response structure from Llama Finance API');
+                return null;
+            }
+
+            const coins = response.data.coins as Record<string, CoinInfoFromLlama>;
+
+            // Exclude tokens with confidence less than 90%
+            const filteredCoins = Object.entries(coins).filter(([key, coinInfo]) => {
+                if (coinInfo.confidence && coinInfo.confidence < 0.9) {
+                    console.warn(`Cannot get price for token ${key} due to low confidence (${coinInfo.confidence})`);
+                    return false;
+                }
+                return true;
+            });
+
+            // Enrich the coin info with the chain ID and address
+            const enrichedCoins = filteredCoins.map(([key, coinInfo]) => {
+                const chainName = key.split(':')[0] as string;
+                const address = key.split(':')[1] as `0x${string}`;
+                const chainId = getChainIdFromLlama(chainName);
+                return {
+                    ...coinInfo,
+                    chainName,
+                    chainId,
+                    address: address as `0x${string}`,
+                };
+            });
+
+            return enrichedCoins;
+        } catch (error) {
+            console.warn('Error fetching USD prices from Llama Finance API:', error);
+            return null;
+        }
     }
 }
 

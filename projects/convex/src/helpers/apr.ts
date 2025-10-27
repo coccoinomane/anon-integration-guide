@@ -11,7 +11,7 @@
 
 import { PublicClient } from 'viem';
 import { CRV_TOKEN_ADDRESS, CVX_TOKEN_ADDRESS, POOL_UTILITIES_CONTRACT_ADDRESS } from '../constants';
-import { tokenHelper } from './tokenHelper';
+import { CoinInfoFromLlama, tokenHelper } from './tokenHelper';
 import { poolUtilitiesAbi } from '../abis';
 
 const SECONDS_PER_YEAR = 31_536_000n;
@@ -48,6 +48,11 @@ interface ConvexAprParams {
 
     // Viem provider
     provider: PublicClient;
+
+    // Whether to fetch symbols and prices of extra reward tokens,
+    // if false, will only compute CRV and CVX rewards APR (ok
+    // for most pools)
+    fetchExtraRewardTokens: boolean;
 }
 
 /**
@@ -76,8 +81,8 @@ function calculateApr(rate: bigint, priceOfReward: number, priceOfDeposit: numbe
  * Uses the PoolUtilities contract to get actual on-chain reward rates.
  * DOES NOT include base APR (swap fees for pools, lending interest for vaults)
  */
-export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSymbols: boolean = false): Promise<AprBreakdown> {
-    const { poolId, tokenPrices, lpTokenPrice, provider } = params;
+export async function calculateConvexApr(params: ConvexAprParams): Promise<AprBreakdown> {
+    const { poolId, tokenPrices, lpTokenPrice, provider, fetchExtraRewardTokens } = params;
 
     // 1. Call rewardRates() from the contract
     const [tokens, rates] = (await provider.readContract({
@@ -94,13 +99,24 @@ export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSym
     const tokenAPRs: Record<`0x${string}`, number> = {};
     let totalAPR = 0;
 
-    // 2. For each token/rate pair, calculate APR
+    // 2. Optionally, fetch symbols and price of extra reward tokens
+    let extraRewardsInfo: CoinInfoFromLlama[] | null = [];
+    if (fetchExtraRewardTokens) {
+        const tokensWithoutCrvAndCvx = tokens.filter((t) => t.toLowerCase() !== CRV_TOKEN_ADDRESS.toLowerCase() && t.toLowerCase() !== CVX_TOKEN_ADDRESS.toLowerCase());
+        if (tokensWithoutCrvAndCvx.length > 0) {
+            const chainId = provider.chain?.id as number;
+            extraRewardsInfo = await tokenHelper.getInfoAndPriceFromAddressesUsingLlama(tokensWithoutCrvAndCvx.map((t) => ({ chainId, address: t })));
+        }
+    }
+
+    // 3. For each token/rate pair, calculate APR
     for (let i = 0; i < tokens.length; i++) {
         const tokenAddress = tokens[i].toLowerCase() as `0x${string}`;
         const rate = rates[i]; // Already a bigint in ethers v6 / viem
+        const extraRewardInfo = extraRewardsInfo?.find((t) => t.address.toLowerCase() === tokenAddress.toLowerCase());
 
         // Get token price
-        const tokenPrice = tokenPrices[tokenAddress];
+        const tokenPrice = tokenPrices[tokenAddress] ?? extraRewardInfo?.price ?? 0;
         if (rate > 0n && !tokenPrice) {
             console.warn(`Could not compute APR from reward token ${tokenAddress}: token price not found`);
             continue;
@@ -121,13 +137,8 @@ export async function calculateConvexApr(params: ConvexAprParams, fetchTokensSym
         } else if (tokenAddress === CVX_TOKEN_ADDRESS.toLowerCase()) {
             tokenSymbol = 'CVX';
         } else {
-            if (fetchTokensSymbols) {
-                tokenSymbol = await tokenHelper.getSymbol(provider, tokenAddress);
-            } else {
-                tokenSymbol = `TOKEN_${i}`;
-            }
+            tokenSymbol = extraRewardInfo?.symbol ?? `TOKEN_${i}`;
         }
-
         tokenAPRs[tokenAddress] = apr;
         totalAPR += apr;
 

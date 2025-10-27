@@ -10,11 +10,10 @@
  */
 
 import axios, { AxiosError, AxiosInstance } from 'axios';
-import { CVX_TOKEN_ADDRESS } from './constants';
+import { CVX_TOKEN_ADDRESS, DEFAULT_TIMEOUT } from './constants';
 import { staticMemoize } from './helpers/memoize';
 
 const BASE_URL = 'https://curve.convexfinance.com/api/';
-const DEFAULT_TIMEOUT = 15000;
 
 /*
   _____

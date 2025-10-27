@@ -89,3 +89,8 @@ export const DEFAULT_PRECISION = 6;
  * so this batch size will handle 20 pools/vaults per batch.
  */
 export const MULTICALL_BATCH_SIZE = 40;
+
+/**
+ * Default timeout for API calls
+ */
+export const DEFAULT_TIMEOUT = 15000;
