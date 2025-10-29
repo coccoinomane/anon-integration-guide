@@ -5,9 +5,9 @@ Convex Finance allows you to maximize yield from [Curve Finance](https://curve.f
 This integration only supports Curve Finance, which as of Oct 2025 represents more than 90% of Convex total TVL. The main features supported by this integration are:
 
 - [Stake your Curve positions](https://curve.convexfinance.com/stake), be it a liquidity position or a Lending Vault crvUSD token, to earn max-boosted rewards
-- [Convert your Curve tokens](https://curve.convexfinance.com/stake) (CRV) to cvxCRV, a liquid token that, once staked, accrues Curve platform revenue without the need to lock your CRV
-- [Stake your Convex tokens](https://curve.convexfinance.com/stake#stake-cvx) (CVX) to earn a share of Convex platform revenue
-- [Lock your Convex tokens](https://www.convexfinance.com/lock-cvx) to earn a share of of Convex platform revenue and to gain voting weights, which can earn you incentives via [Votium app](https://votium.app/).
+- [Convert your CRV tokens](https://curve.convexfinance.com/stake) to cvxCRV, a liquid token that, once staked, accrues Curve platform revenue without the need to lock your CRV
+- [Stake your CVX tokens](https://curve.convexfinance.com/stake#stake-cvx) to earn a share of Convex platform revenue
+- [Lock your CVX tokens](https://www.convexfinance.com/lock-cvx) to earn a share of of Convex platform revenue and to gain voting weights, which can earn you incentives via [Votium app](https://votium.app/).
 
 More information on Convex Finance can be found on their own academy page: https://www.convexfinance.com/academy
 

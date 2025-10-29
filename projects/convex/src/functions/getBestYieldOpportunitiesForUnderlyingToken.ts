@@ -2,6 +2,7 @@ import { EVM, EvmChain, FunctionOptions, FunctionReturn, toResult } from '@heyan
 import { MIN_TVL, N_MAX_RESULTS_IN_BEST_YIELD, supportedChains } from '../constants';
 import { ConvexCurveClient, LendingVault, Pool } from '../client';
 import { enrichConvexToken, EnrichedConvexToken, formatConvexTokenShort, isPool, shouldIncludePosition } from '../helpers/poolAndVaults';
+import { toTitleCase } from '../helpers/format';
 
 interface Props {
     chainName: string;
@@ -62,9 +63,9 @@ export async function getBestYieldOpportunitiesForUnderlyingToken(
         poolsAndVaults.push(...vaults);
     }
 
-    // If no positions found, return early
+    // If no poor or vault found, return early
     if (poolsAndVaults.length === 0) {
-        return toResult(`No positions found with '${tokenSymbol}' as underlying token on ${chainName} chain`);
+        return toResult(`No pools or lending vaults found on Convex with '${tokenSymbol}' as underlying token on ${toTitleCase(chainName)} chain`);
     }
 
     // Sort by APR.  Rather than fetching APRs on-chain, which is

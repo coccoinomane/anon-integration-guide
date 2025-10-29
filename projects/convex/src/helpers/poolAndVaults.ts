@@ -57,6 +57,7 @@ export type EnrichedConvexToken = {
     curveId: string;
     curveName: string;
     curveTokenAddress: `0x${string}`;
+    curveDepositUrl: string;
     /** The API-returned object, either a Pool or a LendingVault */
     apiObject: Pool | LendingVault;
     apiApyObject?: Apy;
@@ -111,6 +112,7 @@ export async function enrichConvexToken(
         curveId: obj.id,
         curveName: obj.name,
         curveTokenAddress: isPool(obj) ? obj.lpTokenAddress : obj.address,
+        curveDepositUrl: isPool(obj) ? obj.poolUrls.deposit[0] : obj.lendingVaultUrls.deposit,
         apiObject: obj,
     };
     // Compute APR data if we have it
@@ -204,6 +206,9 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
     if (includeIntro) {
         parts.push(`Info on Convex ${ct.typeLabel} token "${ct.uiName}":`);
     }
+    let addedDepositInfo: boolean = false;
+
+    // Balance information goes first
     if (ct.userBalances) {
         const d = CONVEX_TOKEN_DECIMALS;
         const subParts: string[] = [];
@@ -233,7 +238,8 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
                 parts[parts.length - 1] += ` (${to$$$(ct.userBalances.usdUnderlying)})`;
             }
         } else if (ct.userBalances.underlying === 0n) {
-            parts.push(` - You own no Curve ${ct.tokensLabel} to deposit on Convex`);
+            parts.push(` - You own no Curve ${ct.tokensLabel} to deposit on Convex: get them at ${ct.curveDepositUrl} or use Curve contract address at ${ct.curveTokenAddress}`);
+            addedDepositInfo = true;
         }
         // Display claimable rewards
         if (ct.userBalances.claimableRewards) {
@@ -243,6 +249,8 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
             }
         }
     }
+
+    // Generic pool/vault information
     parts.push(` - Total TVL: ${typeof ct.TVL === 'number' ? to$$$(ct.TVL, 0, 0) : 'N/A'}`);
     parts.push(` - Total APR: ${typeof ct.uiApr === 'number' && ct.uiApr >= 0 ? `${ct.uiApr.toFixed(2)}%` : 'N/A'}`);
     if (ct.uiApr && ct?.uiAprBreakdown?.breakdown && ct.uiAprBreakdown.breakdown.length > 0) {
@@ -255,7 +263,9 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
         parts.push(` - Total APY: ${ct.uiApy >= 0 ? `${ct.uiApy.toFixed(2)}%` : 'N/A'}`);
     }
     parts.push(` - Convex ID: ${ct.id}`);
-    parts.push(` - Underlying ${ct.typeLabelShort} on Curve: "${ct.curveName}" with Curve ID "${ct.curveId}"`);
+    if (!addedDepositInfo) {
+        parts.push(` - To deposit on Convex you need Curve ${ct.tokensLabel}: get them at ${ct.curveDepositUrl} or use Curve contract address at ${ct.curveTokenAddress}`);
+    }
     if (ct.isBrokenOrShutdown) {
         parts.push(` - ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);
     }
