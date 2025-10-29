@@ -1,27 +1,18 @@
 # Convex Finance Yield Maximization
 
-Convex Finance allows you to maximize yield from [Curve Finance](https://curve.fi/), [Frax Finance](https://frax.com/) and other Decentralized Finance platforms.
-
-This integration only supports Curve Finance, which as of Oct 2025 represents more than 90% of Convex total TVL. The main features supported by this integration are:
-
-- [Stake your Curve positions](https://curve.convexfinance.com/stake), be it a liquidity position or a Lending Vault crvUSD token, to earn max-boosted rewards
-- [Convert your CRV tokens](https://curve.convexfinance.com/stake) to cvxCRV, a liquid token that, once staked, accrues Curve platform revenue without the need to lock your CRV
-- [Stake your CVX tokens](https://curve.convexfinance.com/stake#stake-cvx) to earn a share of Convex platform revenue
-- [Lock your CVX tokens](https://www.convexfinance.com/lock-cvx) to earn a share of of Convex platform revenue and to gain voting weights, which can earn you incentives via [Votium app](https://votium.app/).
-
-More information on Convex Finance can be found on their own academy page: https://www.convexfinance.com/academy
+Convex Finance allows you to maximize yield from [Curve Finance](https://curve.fi/), [Frax Finance](https://frax.com/) and other Decentralized Finance platforms. More information on Convex Finance can be found on their own academy page: https://www.convexfinance.com/academy
 
 ## Worth noting
+
+- This integration only supports Curve Finance on Ethereum, which as of Oct 2025 represents more than 90% of Convex total TVL.
+
+- Convex has a very limited APYs, which I implemented in [./src/client.ts](./src/client.ts). Most of the data fetching operations performed by this integration are done directly on the blockchain. In particular, the portfolio & opportunities tools perform many about 30-40 RPC multicalls each: make sure to use a good RPC provider to avoid rate limiting errors.
 
 - Computing accurate APYs was tricky, for more details see:
     - https://discord.com/channels/820795644494610432/864157305566527508/1428627572274630727
     - https://docs.convexfinance.com/convexfinanceintegration/cvx-minting
     - https://etherscan.io/address/0x5Fba69a794F395184b5760DAf1134028608e5Cd1#readContract
     - https://discord.com/channels/820795644494610432/864157305566527508/880860136523059210
-
-- The Convex integration supports only Ethereum, where 96% of the protocol TVL is concentrated, and the only chain where you can stake CVX tokens
-
-- As of Oct 13 2025, cvxCRV is heavily depegged (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU)), should we disable the convert function?
 
 ## Examples of commands
 
@@ -75,14 +66,21 @@ Please note that:
 
 ### CRV and CVX staking
 
-- TODO: How much CRV I have staked on Convex?
-- TODO: Value of my locked CVX position on Convex
-- TODO: Convert and stake my CRV on Convex
-- TODO: Stake and lock 100 CVX on Convex
-- TODO: Give me APY of Convex CRV staking on Ethereum
+- NOT IMPLEMENTED: How much CRV I have staked on Convex?
+- NOT IMPLEMENTED: Value of my locked CVX position on Convex
+- NOT IMPLEMENTED: Convert and stake my CRV on Convex
+- NOT IMPLEMENTED: Stake and lock 100 CVX on Convex
+- NOT IMPLEMENTED: Give me APY of Convex CRV staking on Ethereum
+
+Please note that when (and if) we will implement CRV to cvxCRV conversion, we should be mindful that, as of Oct 2025, cvxCRV is heavily depegged from CRV, see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU).
 
 ## Convex protocol KB
 
+- The main features supported by Convex Finance are:
+    - [Stake your Curve positions](https://curve.convexfinance.com/stake), be it a liquidity position or a Lending Vault crvUSD token, to earn max-boosted rewards
+    - [Convert your CRV tokens](https://curve.convexfinance.com/stake) to cvxCRV, a liquid token that, once staked, accrues Curve platform revenue without the need to lock your CRV
+    - [Stake your CVX tokens](https://curve.convexfinance.com/stake#stake-cvx) to earn a share of Convex platform revenue
+    - [Lock your CVX tokens](https://www.convexfinance.com/lock-cvx) to earn a share of of Convex platform revenue and to gain voting weights, which can earn you incentives via [Votium app](https://votium.app/).
 - A Convex LP token is a deposit/receipt token that the user receives in exchange for depositing Curve liquidity on Convex
 - After obtaining a Convex LP token, it can then be further staked on Convex to earn boosted CRV and (sometimes) CVX rewards; this
   is the whole point of it.

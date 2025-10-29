@@ -6,12 +6,10 @@
 
 ## Minor
 
-- Warning for cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
-- How to check CRV and CVX staking APR > https://discord.com/channels/820795644494610432/864157305566527508/1154349279763234868
-
 ## Future
 
 - Optionally have the claimRewards tool to lock CVX (see ClaimZap.sol)
-- In deposit tools, if the user does not have enough tokens, we could suggest him to deposit into Curve first by showing them the URL to the Curve pool/lending vault page
 - Should we allow the user to stake already deposited tokens? E.g. by adding a "stakeUnstakedTokens" parameter to deposit tools?
 - The assistant always sets minTvl to zero in portfolio tool, should we enforce the minimum value?
+- Implement cvxCRV staking, CVX staking, CVX locking
+- Implement CRV -> cvxCRV conversion, taking care of cvxCRV depegging (see [here](https://www.defiwars.xyz/projects/convex) and [here](https://d.pr/i/gFtnBU))
