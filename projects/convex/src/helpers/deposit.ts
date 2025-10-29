@@ -1,7 +1,7 @@
 import { encodeFunctionData, parseUnits, erc20Abi, formatUnits, PublicClient } from 'viem';
 import { FunctionOptions, EVM } from '@heyanon/sdk';
 import { boosterAbi } from '../abis';
-import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_TOKEN_DECIMALS } from '../constants';
+import { CONVEX_BOOSTER_CONTRACT_ADDRESS, CONVEX_TOKEN_DECIMALS, CURVE_WEBSITE_URL } from '../constants';
 import { BoosterPoolInfo, fetchBoosterPoolInfo } from './booster';
 
 /**
@@ -62,10 +62,20 @@ export async function buildDepositExactTokensTransactions(
     });
 
     if (balance < amountInWei) {
+        let curveLpTokenName: string;
+        try {
+            // Get name of Curve LP token
+            curveLpTokenName = await provider.readContract({
+                address: poolInfo.lptoken,
+                abi: erc20Abi,
+                functionName: 'name',
+            });
+        } catch (error) {
+            throw new Error(`Not enough Curve tokens: you need ${amount} but you have ${formatUnits(balance, CONVEX_TOKEN_DECIMALS)}.`);
+        }
+        // Inform the user how to get the Curve tokens
         throw new Error(
-            `Not enough Curve tokens: you need ${amount} but you have ${formatUnits(balance, CONVEX_TOKEN_DECIMALS)}\n` +
-                `Convex pool ID: ${convexTokenId}\n` +
-                `You need to first deposit into the Curve pool or lending vault to get tokens.`,
+            `Not enough Curve tokens: you need ${amount} but you have ${formatUnits(balance, CONVEX_TOKEN_DECIMALS)}. To get them, either deposit directly into Curve contract at ${poolInfo.lptoken} or use Curve website at ${CURVE_WEBSITE_URL} to deposit into "${curveLpTokenName}"`,
         );
     }
 

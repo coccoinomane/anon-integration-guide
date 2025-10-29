@@ -215,7 +215,7 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
         if (ct.userBalances.total > 0n) {
             subParts.push(` - You own ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel} on Convex`);
         } else {
-            subParts.push(` - You have not deposited any ${ct.tokensLabel} on Convex yet`);
+            subParts.push(` - You have not deposited any Curve tokens into this Convex ${ct.typeLabelShort} yet`);
         }
         if (ct.userBalances.usdTotal) {
             subParts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
@@ -238,7 +238,9 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
                 parts[parts.length - 1] += ` (${to$$$(ct.userBalances.usdUnderlying)})`;
             }
         } else if (ct.userBalances.underlying === 0n) {
-            parts.push(` - You own no Curve ${ct.tokensLabel} to deposit on Convex: get them at ${ct.curveDepositUrl} or use Curve contract address at ${ct.curveTokenAddress}`);
+            parts.push(
+                ` - You own no Curve tokens to deposit into this Convex ${ct.typeLabelShort}: get them at ${ct.curveDepositUrl} or directly use the Curve ${ct.typeLabelShort} contract address at ${ct.curveTokenAddress}`,
+            );
             addedDepositInfo = true;
         }
         // Display claimable rewards
@@ -264,7 +266,9 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
     }
     parts.push(` - Convex ID: ${ct.id}`);
     if (!addedDepositInfo) {
-        parts.push(` - To deposit on Convex you need Curve ${ct.tokensLabel}: get them at ${ct.curveDepositUrl} or use Curve contract address at ${ct.curveTokenAddress}`);
+        parts.push(
+            ` - To deposit into this Convex ${ct.typeLabelShort} you need Curve ${ct.tokensLabel}: get them at ${ct.curveDepositUrl} or directly use the Curve ${ct.typeLabelShort} contract address at ${ct.curveTokenAddress}`,
+        );
     }
     if (ct.isBrokenOrShutdown) {
         parts.push(` - ⚠️ ${toTitleCase(ct.typeLabelShort)} may not be active anymore`);

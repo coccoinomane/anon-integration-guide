@@ -94,3 +94,8 @@ export const MULTICALL_BATCH_SIZE = 40;
  * Default timeout for API calls
  */
 export const DEFAULT_TIMEOUT = 15000;
+
+/**
+ * Curve website, used to invite the user to get Curve LP tokens
+ */
+export const CURVE_WEBSITE_URL = 'https://www.curve.finance/';
