@@ -215,7 +215,7 @@ export function formatConvexToken(ct: EnrichedConvexToken, includeIntro: boolean
         if (ct.userBalances.total > 0n) {
             subParts.push(` - You own ${formatUnits(ct.userBalances.total, d)} ${ct.tokensLabel} on Convex`);
         } else {
-            subParts.push(` - You have not deposited any Curve tokens into this Convex ${ct.typeLabelShort} yet`);
+            subParts.push(` - You have nothing in this Convex ${ct.typeLabelShort} yet`);
         }
         if (ct.userBalances.usdTotal) {
             subParts.push(` (${to$$$(ct.userBalances.usdTotal)})`);
